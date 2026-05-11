@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Invitado - AMPAgo</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+
+<body>
+
+<header>
+  Panel Invitado
+
+  <div class="profile-menu">
+    <img src="../img/user.png" class="profile-icon" id="profileToggle">
+
+    <div class="profile-dropdown" id="profileDropdown">
+      <p>Invitado</p>
+      <p>Rol: invitado</p>
+
+      <button id="btnLogin">Iniciar sesión</button>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+
+  <h2>Bienvenido</h2>
+
+  <p>Puedes ver las actividades disponibles sin iniciar sesión.</p>
+
+  <button id="btnActividades">
+    Actividades disponibles
+  </button>
+
+</div>
+
+<script>
+/* ============================================================
+   MENÚ PERFIL
+============================================================ */
+document.getElementById("profileToggle").onclick = () => {
+  const d = document.getElementById("profileDropdown");
+  d.style.display = d.style.display === "block" ? "none" : "block";
+};
+
+document.addEventListener("click", (e) => {
+  if (!e.target.closest(".profile-menu")) {
+    document.getElementById("profileDropdown").style.display = "none";
+  }
+});
+
+/* ============================================================
+   IR A LOGIN
+============================================================ */
+document.getElementById("btnLogin").onclick = () => {
+  localStorage.removeItem("invitado");
+  location.href = "./login.html";
+};
+
+/* ============================================================
+   ENTRAR COMO INVITADO
+============================================================ */
+document.getElementById("btnActividades").onclick = () => {
+  localStorage.setItem("invitado", "true");
+  location.href = "./actividades.html";
+};
+</script>
+
+</body>
+</html>

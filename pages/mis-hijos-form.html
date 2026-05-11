@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Hijo - AMPAgo</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+
+<body>
+
+<header>Hijo</header>
+
+<div class="container">
+
+  <h2 id="titulo">Añadir hijo</h2>
+
+  <input id="nombre" type="text" placeholder="Nombre">
+  <input id="apellidos" type="text" placeholder="Apellidos">
+  <input id="curso" type="text" placeholder="Curso (opcional)">
+  <input id="fecha_nacimiento" type="date">
+
+  <button id="btnGuardar">Guardar</button>
+  <button onclick="location.href='./mis-hijos.html'">Volver</button>
+
+</div>
+
+<script type="module">
+import { supabase } from "../js/supabaseclientes.js";
+
+/* ============================================================
+   1. SESIÓN
+============================================================ */
+const { data: { user } } = await supabase.auth.getUser();
+
+if (!user) {
+  location.href = "./login.html";
+}
+
+/* ============================================================
+   2. PERFIL
+============================================================ */
+const { data: profile } = await supabase
+  .from("profiles")
+  .select("role")
+  .eq("id", user.id)
+  .maybeSingle();
+
+if (!profile || profile.role !== "familiar") {
+  alert("Solo los familiares pueden acceder");
+  location.href = "./login.html";
+}
+
+/* ============================================================
+   3. ID HIJO
+============================================================ */
+const params = new URLSearchParams(window.location.search);
+const id = params.get("id");
+
+/* ============================================================
+   4. MODO EDICIÓN
+============================================================ */
+if (id) {
+  document.getElementById("titulo").textContent = "Editar hijo";
+  cargarHijo();
+}
+
+/* ============================================================
+   5. CARGAR HIJO
+============================================================ */
+async function cargarHijo() {
+
+  const { data: hijo, error } = await supabase
+    .from("alumnos")
+    .select("*")
+    .eq("id", id)
+    .eq("familiar_id", user.id)   // Seguridad extra
+    .maybeSingle();
+
+  if (error || !hijo) {
+    alert("Error cargando hijo");
+    location.href = "./mis-hijos.html";
+    return;
+  }
+
+  document.getElementById("nombre").value = hijo.nombre || "";
+  document.getElementById("apellidos").value = hijo.apellidos || "";
+  document.getElementById("curso").value = hijo.curso || "";
+  document.getElementById("fecha_nacimiento").value = hijo.fecha_nacimiento || "";
+}
+
+/* ============================================================
+   6. GUARDAR
+============================================================ */
+document.getElementById("btnGuardar").onclick = async () => {
+
+  const nombre = document.getElementById("nombre").value.trim();
+  const apellidos = document.getElementById("apellidos").value.trim();
+  const curso = document.getElementById("curso").value.trim() || null;
+  const fecha_nacimiento = document.getElementById("fecha_nacimiento").value || null;
+
+  if (!nombre || !apellidos) {
+    alert("Nombre y apellidos son obligatorios");
+    return;
+  }
+
+  const datos = {
+    nombre,
+    apellidos,
+    curso,
+    fecha_nacimiento,
+    familiar_id: user.id
+  };
+
+  let error;
+
+  if (id) {
+    const res = await supabase
+      .from("alumnos")
+      .update(datos)
+      .eq("id", id)
+      .eq("familiar_id", user.id); // Seguridad
+
+    error = res.error;
+
+  } else {
+    const res = await supabase
+      .from("alumnos")
+      .insert([datos]);
+
+    error = res.error;
+  }
+
+  if (error) {
+    console.error(error);
+    alert("Error guardando hijo");
+    return;
+  }
+
+  location.href = "./mis-hijos.html";
+};
+</script>
+
+</body>
+</html>

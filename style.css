@@ -1,0 +1,184 @@
+/* ============================================================
+   🎨 PALETA DE COLORES (Pokémon Theme)
+============================================================ */
+:root {
+  --red: #EE1515;
+  --red-dark: #c40f0f;
+  --yellow: #FFCB05;
+  --blue: #2A75BB;
+  --blue-dark: #1f5a91;
+  --gray: #777;
+  --gray-dark: #555;
+  --black: #1a1a1a;
+  --bg: #f4f4f4;
+  --text: #333;
+}
+
+/* ============================================================
+   🧱 BASE
+============================================================ */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* ============================================================
+   🟥 HEADER
+============================================================ */
+header {
+  background: var(--red);
+  color: var(--yellow);
+  padding: 20px;
+  text-align: center;
+  font-size: 28px;
+  font-weight: bold;
+  position: relative;
+  border-bottom: 4px solid var(--blue);
+}
+
+/* ============================================================
+   👤 PERFIL (MENÚ SUPERIOR)
+============================================================ */
+.profile-menu {
+  position: absolute;
+  top: 10px;
+  right: 20px;
+}
+
+.profile-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid var(--yellow);
+}
+
+.profile-dropdown {
+  display: none;
+  position: absolute;
+  right: 0;
+  background: white;
+  border: 2px solid var(--red);
+  padding: 12px;
+  border-radius: 10px;
+  width: 200px;
+  text-align: left;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+  z-index: 10;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.profile-dropdown p {
+  margin: 5px 0;
+  font-size: 14px;
+}
+
+/* ============================================================
+   📦 CONTENEDORES
+============================================================ */
+.container, .panel {
+  width: 90%;
+  max-width: 800px;
+  margin: 40px auto;
+  background: white;
+  padding: 25px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  text-align: center;
+}
+
+/* ============================================================
+   ✏️ INPUTS
+============================================================ */
+input, select, textarea {
+  width: 100%;
+  padding: 12px;
+  margin: 10px 0;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 16px;
+  box-sizing: border-box;
+}
+
+/* ============================================================
+   🔘 BOTONES
+============================================================ */
+button {
+  padding: 12px;
+  margin-top: 10px;
+  background: var(--red);
+  color: var(--yellow);
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: 0.2s;
+  min-width: 120px;
+}
+
+button:hover {
+  background: var(--red-dark);
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Variantes */
+.btn-invitado {
+  background: var(--blue);
+  color: white;
+}
+
+.btn-invitado:hover {
+  background: var(--blue-dark);
+}
+
+.btn-danger {
+  background: var(--black);
+  color: var(--yellow);
+}
+
+.btn-danger:hover {
+  background: black;
+}
+
+.btn-secondary {
+  background: var(--gray);
+  color: white;
+}
+
+.btn-secondary:hover {
+  background: var(--gray-dark);
+}
+
+/* ============================================================
+   📊 TABLAS
+============================================================ */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+}
+
+th, td {
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+  text-align: left;
+}
+
+tr:hover {
+  background: #fff3c4; /* Amarillo suave */
+}
+
+/* ============================================================
+   🧩 PANEL
+============================================================ */
+.panel button {
+  margin-bottom: 10px;
+}
