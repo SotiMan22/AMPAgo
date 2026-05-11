@@ -24,7 +24,7 @@ const esInvitado = localStorage.getItem("invitado") === "true";
 
 if (esInvitado) {
   document.getElementById("status").textContent = "Entrando como invitado...";
-  location.href = "./invitado.html";
+  location.href = "../pages/invitado.html";
 }
 
 /* ============================================================
@@ -34,7 +34,7 @@ const { data: { user } } = await supabase.auth.getUser();
 const status = document.getElementById("status");
 
 if (!user) {
-  location.href = "./login.html";
+  location.href = "../pages/login.html";
 }
 
 /* ============================================================
@@ -50,13 +50,13 @@ if (error) {
   console.error(error);
   alert("Error cargando perfil");
   await supabase.auth.signOut();
-  location.href = "./login.html";
+  location.href = "../pages/login.html";
 }
 
 if (!profile) {
   alert("Perfil no encontrado");
   await supabase.auth.signOut();
-  location.href = "./login.html";
+  location.href = "../pages/login.html";
 }
 
 /* ============================================================
@@ -66,21 +66,21 @@ status.textContent = "Redirigiendo...";
 
 switch (profile.role) {
   case "admin":
-    location.href = "./admin.html";
+    location.href = "../pages/admin.html";
     break;
 
   case "monitor":
-    location.href = "./monitor.html";
+    location.href = "../pages/monitor.html";
     break;
 
   case "familiar":
-    location.href = "./familiar.html";
+    location.href = "../pages/familiar.html";
     break;
 
   default:
     alert("Rol desconocido");
     await supabase.auth.signOut();
-    location.href = "./login.html";
+    location.href = "../pages/login.html";
 }
 </script>
 
