@@ -27,7 +27,8 @@
 
 <div class="container">
 
-  <h2>Bienvenido, administrador</h2>
+  <!-- TEXTO DINÁMICO -->
+  <h2 id="bienvenida"></h2>
 
   <button onclick="location.href='./register.html'">
     Crear nueva cuenta
@@ -64,7 +65,7 @@ if (!user) {
 ============================================================ */
 const { data: profile, error } = await supabase
   .from("profiles")
-  .select("role")
+  .select("role, nombre, apellidos")
   .eq("id", user.id)
   .maybeSingle();
 
@@ -82,10 +83,13 @@ if (profile.role !== "admin") {
 }
 
 /* ============================================================
-   UI PERFIL
+   UI PERFIL + BIENVENIDA
 ============================================================ */
 document.getElementById("profileEmail").textContent = user.email || "";
 document.getElementById("profileRole").textContent = "Rol: " + profile.role;
+
+document.getElementById("bienvenida").textContent =
+  `Bienvenido, ${profile.role} ${profile.nombre} ${profile.apellidos}`;
 
 /* ============================================================
    MENÚ PERFIL
