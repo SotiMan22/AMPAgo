@@ -3,7 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <title>Panel Admin - AMPAgo</title>
-  <link rel="stylesheet" href="../style.css">
+
+  <!-- RUTA CORREGIDA -->
+  <link rel="stylesheet" href="/AMPAgo/style.css">
 </head>
 
 <body>
@@ -12,7 +14,8 @@
   Panel Administrador
 
   <div class="profile-menu">
-    <img src="../img/user.png" class="profile-icon" id="profileToggle">
+    <!-- RUTA CORREGIDA -->
+    <img src="/AMPAgo/img/user.png" class="profile-icon" id="profileToggle">
 
     <div class="profile-dropdown" id="profileDropdown">
       <p id="profileEmail"></p>
@@ -26,26 +29,26 @@
 
   <h2>Bienvenido, administrador</h2>
 
-  <button onclick="location.href='./register.html'">
+  <button onclick="location.href='/AMPAgo/pages/register.html'">
     Crear nueva cuenta
   </button>
 
-  <button onclick="location.href='./actividades.html'">
+  <button onclick="location.href='/AMPAgo/pages/actividades.html'">
     Gestionar actividades
   </button>
 
-  <button onclick="location.href='./anuncios.html'">
+  <button onclick="location.href='/AMPAgo/pages/anuncios.html'">
     Tablón de anuncios
   </button>
 
-  <button onclick="location.href='./anuncios-form.html'">
-    Crear anuncio
-  </button>
-
+  <!-- ❌ BOTÓN DE CREAR ANUNCIO ELIMINADO -->
+  
 </div>
 
 <script type="module">
-import { supabase } from "../js/supabaseclientes.js";
+
+/* RUTA CORREGIDA */
+import { supabase } from "/AMPAgo/js/supabaseclientes.js";
 
 /* ============================================================
    SESIÓN
@@ -53,7 +56,7 @@ import { supabase } from "../js/supabaseclientes.js";
 const { data: { user } } = await supabase.auth.getUser();
 
 if (!user) {
-  location.href = "./login.html";
+  location.href = "/AMPAgo/pages/login.html";
 }
 
 /* ============================================================
@@ -67,7 +70,7 @@ const { data: profile, error } = await supabase
 
 if (error || !profile) {
   alert("Error cargando perfil");
-  location.href = "./login.html";
+  location.href = "/AMPAgo/pages/login.html";
 }
 
 /* ============================================================
@@ -75,7 +78,7 @@ if (error || !profile) {
 ============================================================ */
 if (profile.role !== "admin") {
   alert("Acceso restringido a administradores");
-  location.href = "./login.html";
+  location.href = "/AMPAgo/pages/login.html";
 }
 
 /* ============================================================
@@ -104,7 +107,7 @@ document.addEventListener("click", (e) => {
 document.getElementById("logoutBtn").onclick = async () => {
   await supabase.auth.signOut();
   localStorage.removeItem("invitado");
-  location.href = "./login.html";
+  location.href = "/AMPAgo/pages/login.html";
 };
 </script>
 
