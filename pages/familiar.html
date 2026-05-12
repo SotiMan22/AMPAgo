@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <title>Panel Familiar - AMPAgo</title>
+
+  <!-- RUTA CORRECTA PARA VERCEL -->
   <link rel="stylesheet" href="../style.css">
 </head>
 
@@ -24,13 +26,14 @@
 
 <div class="container">
 
-  <h2>Bienvenido</h2>
+  <!-- TEXTO DINÁMICO -->
+  <h2 id="bienvenida"></h2>
 
   <button onclick="location.href='./mis-hijos.html'">
     Mis hijos
   </button>
 
-  <button onclick="location.href='./actividades.html'">
+  <button onclick="location.href='./actividades-disponibles.html'">
     Actividades disponibles
   </button>
 
@@ -41,16 +44,9 @@
 </div>
 
 <script type="module">
+
+/* RUTA CORRECTA PARA VERCEL */
 import { supabase } from "../js/supabaseclientes.js";
-
-/* ============================================================
-   BLOQUEAR BOTÓN ATRÁS
-============================================================ */
-window.history.pushState(null, "", window.location.href);
-
-window.addEventListener("popstate", () => {
-  window.history.pushState(null, "", window.location.href);
-});
 
 /* ============================================================
    SESIÓN
@@ -71,7 +67,7 @@ const { data: profile, error } = await supabase
   .maybeSingle();
 
 if (error || !profile) {
-  alert("No se pudo cargar el perfil");
+  alert("Error cargando perfil");
   location.href = "./login.html";
 }
 
@@ -84,10 +80,13 @@ if (profile.role !== "familiar") {
 }
 
 /* ============================================================
-   UI PERFIL
+   UI PERFIL + BIENVENIDA
 ============================================================ */
 document.getElementById("profileEmail").textContent = user.email || "";
 document.getElementById("profileRole").textContent = "Rol: " + profile.role;
+
+document.getElementById("bienvenida").textContent =
+  `Bienvenido, ${profile.role} ${profile.nombre} ${profile.apellidos}`;
 
 /* ============================================================
    MENÚ PERFIL
@@ -104,7 +103,7 @@ document.addEventListener("click", (e) => {
 });
 
 /* ============================================================
-   LOGOUT (CORREGIDO)
+   LOGOUT
 ============================================================ */
 document.getElementById("logoutBtn").onclick = async () => {
   await supabase.auth.signOut();
