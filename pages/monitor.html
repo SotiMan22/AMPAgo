@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <title>Panel Monitor - AMPAgo</title>
+
+  <!-- RUTA CORRECTA PARA VERCEL -->
   <link rel="stylesheet" href="../style.css">
 </head>
 
@@ -24,7 +26,8 @@
 
 <div class="container">
 
-  <h2>Bienvenido, monitor</h2>
+  <!-- TEXTO DINÁMICO -->
+  <h2 id="bienvenida"></h2>
 
   <button onclick="location.href='./mis-actividades.html'">
     Mis actividades
@@ -32,6 +35,10 @@
 
   <button onclick="location.href='./actividades.html'">
     Actividades
+  </button>
+
+  <button onclick="location.href='./anuncios.html'">
+    Tablón de anuncios
   </button>
 
 </div>
@@ -53,7 +60,7 @@ if (!user) {
 ============================================================ */
 const { data: profile, error } = await supabase
   .from("profiles")
-  .select("role")
+  .select("role, nombre, apellidos")
   .eq("id", user.id)
   .maybeSingle();
 
@@ -71,10 +78,13 @@ if (profile.role !== "monitor") {
 }
 
 /* ============================================================
-   4. UI PERFIL
+   4. UI PERFIL + BIENVENIDA
 ============================================================ */
 document.getElementById("profileEmail").textContent = user.email || "";
 document.getElementById("profileRole").textContent = "Rol: " + profile.role;
+
+document.getElementById("bienvenida").textContent =
+  `Bienvenido, ${profile.role} ${profile.nombre} ${profile.apellidos}`;
 
 /* ============================================================
    5. MENÚ PERFIL
