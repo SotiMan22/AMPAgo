@@ -69,40 +69,11 @@ if (!user && !esInvitado) {
   location.href = "./login.html";
 }
 
-/* ================= NAVEGACIÓN UNIVERSAL ================= */
-async function navegar() {
-  if (esInvitado) {
-    location.href = "./invitado.html";
-    return;
-  }
-
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
-    location.href = "./login.html";
-    return;
-  }
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role, avatar_url")
-    .eq("id", user.id)
-    .maybeSingle();
-
-  // Mantener foto de perfil
-  const icono = document.getElementById("profileToggle");
-  if (icono && profile?.avatar_url) {
-    icono.src = profile.avatar_url;
-  }
-
-  switch (profile?.role) {
-    case "admin": location.href = "./admin.html"; break;
-    case "monitor": location.href = "./monitor.html"; break;
-    case "familiar": location.href = "./familiar.html"; break;
-    default: location.href = "./login.html";
-  }
-}
-
-document.getElementById("btnVolver").onclick = navegar;
+/* ================= BOTÓN VOLVER (CORREGIDO) ================= */
+/* NO USA ROL, NO USA SUPABASE, NO EXPULSA */
+document.getElementById("btnVolver").onclick = () => {
+  location.href = "./familiar.html";
+};
 
 /* ================= INICIO (CERRAR SESIÓN) ================= */
 document.getElementById("btnInicio").onclick = async () => {
