@@ -107,18 +107,9 @@ if (!esInvitado && user) {
 
 /* ================= BOTONES NAVEGACIÓN ================= */
 
-/* Rutas según rol */
-const paneles = {
-  "admin": "./admin.html",
-  "monitor": "./monitor.html",
-  "familiar": "./familiar.html",
-  "invitado": "./invitado.html"
-};
-
-/* VOLVER — NO CIERRA SESIÓN */
+/* VOLVER — NO CIERRA SESIÓN — SIEMPRE A admin.html */
 document.getElementById("btnVolver").onclick = () => {
-  const destino = paneles[role] ?? "./login.html";
-  location.href = destino;
+  location.href = "./admin.html";
 };
 
 /* INICIO — SÍ CIERRA SESIÓN */
@@ -127,6 +118,7 @@ document.getElementById("btnInicio").onclick = async () => {
   localStorage.removeItem("invitado");
   location.href = "./login.html";
 };
+
 
 /* ================= PERMISOS ================= */
 let puedeGestionar = role === "admin" || role === "monitor";
