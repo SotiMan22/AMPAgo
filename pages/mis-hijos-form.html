@@ -18,6 +18,14 @@
       cursor: pointer;
       border-radius: 4px;
     }
+
+    select {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
   </style>
 </head>
 
@@ -39,7 +47,6 @@
 
 <div class="container">
 
-  <!-- BOTONES VOLVER + INICIO -->
   <div class="nav-container">
     <button id="btnVolver" class="nav-btn">Volver</button>
     <button id="btnInicio" class="nav-btn">Inicio</button>
@@ -51,6 +58,11 @@
   <input id="apellidos" type="text" placeholder="Apellidos">
   <input id="curso" type="text" placeholder="Curso (opcional)">
   <input id="fecha_nacimiento" type="date">
+
+  <h3>Inscribir en actividad</h3>
+  <select id="actividadSelect">
+    <option value="">— No inscribir —</option>
+  </select>
 
   <button id="btnGuardar">Guardar</button>
 
@@ -98,12 +110,11 @@ document.getElementById("logoutBtn").onclick = async () => {
   location.href = "./login.html";
 };
 
-/* BOTÓN VOLVER */
+/* BOTONES */
 document.getElementById("btnVolver").onclick = () => {
   location.href = "./mis-hijos.html";
 };
 
-/* BOTÓN INICIO */
 document.getElementById("btnInicio").onclick = async () => {
   await supabase.auth.signOut();
   localStorage.removeItem("invitado");
@@ -114,6 +125,25 @@ document.getElementById("btnInicio").onclick = async () => {
 const params = new URLSearchParams(window.location.search);
 const id = params.get("id");
 
+/* CARGAR ACTIVIDADES */
+async function cargarActividades() {
+  const { data } = await supabase
+    .from("actividades")
+    .select("id, nombre")
+    .order("nombre");
+
+  const sel = document.getElementById("actividadSelect");
+
+  data?.forEach(a => {
+    const opt = document.createElement("option");
+    opt.value = a.id;
+    opt.textContent = a.nombre;
+    sel.appendChild(opt);
+  });
+}
+
+await cargarActividades();
+
 /* MODO EDICIÓN */
 if (id) {
   document.getElementById("titulo").textContent = "Editar hijo";
@@ -122,21 +152,21 @@ if (id) {
 
 /* CARGAR HIJO */
 async function cargarHijo() {
-  const { data: hijo, error } = await supabase
+  const { data: hijo } = await supabase
     .from("alumnos")
     .select("*")
     .eq("id", id)
     .eq("familiar_id", user.id)
     .maybeSingle();
 
-  if (error || !hijo) {
+  if (!hijo) {
     alert("Error cargando hijo");
     location.href = "./mis-hijos.html";
     return;
   }
 
-  document.getElementById("nombre").value = hijo.nombre || "";
-  document.getElementById("apellidos").value = hijo.apellidos || "";
+  document.getElementById("nombre").value = hijo.nombre;
+  document.getElementById("apellidos").value = hijo.apellidos;
   document.getElementById("curso").value = hijo.curso || "";
   document.getElementById("fecha_nacimiento").value = hijo.fecha_nacimiento || "";
 }
@@ -148,6 +178,7 @@ document.getElementById("btnGuardar").onclick = async () => {
   const apellidos = document.getElementById("apellidos").value.trim();
   const curso = document.getElementById("curso").value.trim() || null;
   const fecha_nacimiento = document.getElementById("fecha_nacimiento").value || null;
+  const actividad_id = document.getElementById("actividadSelect").value;
 
   if (!nombre || !apellidos) {
     alert("Nombre y apellidos son obligatorios");
@@ -162,30 +193,43 @@ document.getElementById("btnGuardar").onclick = async () => {
     familiar_id: user.id
   };
 
-  let error;
+  let hijo_id = id;
 
+  /* CREAR O ACTUALIZAR HIJO */
   if (id) {
-    const res = await supabase
+    const { error } = await supabase
       .from("alumnos")
       .update(datos)
       .eq("id", id)
       .eq("familiar_id", user.id);
 
-    error = res.error;
+    if (error) return alert("Error actualizando hijo");
 
   } else {
-    const res = await supabase
+    const { data, error } = await supabase
       .from("alumnos")
-      .insert([datos]);
+      .insert([datos])
+      .select()
+      .single();
 
-    error = res.error;
+    if (error) return alert("Error creando hijo");
+
+    hijo_id = data.id;
   }
 
-  if (error) {
-    alert("Error guardando hijo");
-    return;
+  /* INSCRIPCIÓN AUTOMÁTICA */
+  if (actividad_id) {
+    await supabase
+      .from("inscripciones")
+      .insert({
+        alumno_id: hijo_id,
+        actividad_id,
+        familiar_id: user.id,
+        fecha_inscripcion: new Date().toISOString()
+      });
   }
 
+  alert("Guardado correctamente");
   location.href = "./mis-hijos.html";
 };
 </script>
