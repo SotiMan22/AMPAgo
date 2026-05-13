@@ -62,41 +62,11 @@
 <script type="module">
 import { supabase } from "../js/supabaseclientes.js";
 
-/* ================= NAVEGACIÓN UNIVERSAL ================= */
-async function navegar() {
-  const esInvitado = localStorage.getItem("invitado") === "true";
-
-  if (esInvitado) {
-    location.href = "./invitado.html";
-    return;
-  }
-
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
-    location.href = "./login.html";
-    return;
-  }
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .maybeSingle();
-
-  switch (profile?.role) {
-    case "admin": location.href = "./admin.html"; break;
-    case "monitor": location.href = "./monitor.html"; break;
-    case "familiar": location.href = "./familiar.html"; break;
-    default: location.href = "./login.html";
-  }
-}
-
-document.getElementById("btnVolver").onclick = navegar;
-document.getElementById("btnInicio").onclick = navegar;
-
-/* ================= SESIÓN ================= */
-const { data: { user } } = await supabase.auth.getUser();
+/* ============================================================
+   1. SESIÓN
+============================================================ */
 const esInvitado = localStorage.getItem("invitado") === "true";
+const { data: { user } } = await supabase.auth.getUser();
 
 if (esInvitado) {
   alert("Los invitados no pueden publicar anuncios");
@@ -107,10 +77,12 @@ if (!user) {
   location.href = "./login.html";
 }
 
-/* ================= PERMISOS ================= */
+/* ============================================================
+   2. PERFIL Y PERMISOS
+============================================================ */
 const { data: profile } = await supabase
   .from("profiles")
-  .select("role")
+  .select("role, avatar_url")
   .eq("id", user.id)
   .maybeSingle();
 
@@ -119,7 +91,40 @@ if (!profile || !["admin", "monitor"].includes(profile.role)) {
   location.href = "./anuncios.html";
 }
 
-/* ================= GUARDAR ================= */
+/* Avatar persistente */
+const icono = document.getElementById("profileToggle");
+if (icono && profile.avatar_url) {
+  icono.src = profile.avatar_url;
+}
+
+/* ============================================================
+   3. NAVEGACIÓN UNIVERSAL
+============================================================ */
+document.getElementById("btnVolver").onclick = () => {
+  switch (profile.role) {
+    case "admin": location.href = "./admin.html"; break;
+    case "monitor": location.href = "./monitor.html"; break;
+    default: location.href = "./anuncios.html";
+  }
+};
+
+document.getElementById("btnInicio").onclick = async () => {
+  await supabase.auth.signOut();
+  localStorage.removeItem("invitado");
+  location.href = "./login.html";
+};
+
+/* ============================================================
+   4. BLOQUEAR RETROCESO
+============================================================ */
+history.pushState(null, null, location.href);
+window.onpopstate = function () {
+  history.go(1);
+};
+
+/* ============================================================
+   5. GUARDAR ANUNCIO
+============================================================ */
 document.getElementById("btnGuardar").onclick = async () => {
   const titulo = document.getElementById("titulo").value.trim();
   const mensaje = document.getElementById("mensaje").value.trim();
