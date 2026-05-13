@@ -75,10 +75,10 @@ import { supabase } from "../js/supabaseclientes.js";
 const { data: { user } } = await supabase.auth.getUser();
 if (!user) location.href = "./login.html";
 
-/* PERFIL */
+/* PERFIL — AHORA CON avatar_url */
 const { data: profile } = await supabase
   .from("profiles")
-  .select("role")
+  .select("role, avatar_url")
   .eq("id", user.id)
   .maybeSingle();
 
@@ -90,6 +90,10 @@ if (!profile || profile.role !== "familiar") {
 /* UI PERFIL */
 document.getElementById("profileEmail").textContent = user.email;
 document.getElementById("profileRole").textContent = "Rol: " + profile.role;
+
+if (profile.avatar_url) {
+  document.getElementById("profileToggle").src = profile.avatar_url;
+}
 
 /* MENÚ PERFIL */
 document.getElementById("profileToggle").onclick = () => {
