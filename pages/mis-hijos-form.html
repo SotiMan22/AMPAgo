@@ -90,7 +90,7 @@
 import { supabase } from "../js/supabaseclientes.js";
 
 /* ============================================================
-   0. REFRESCAR SESIÓN (SOLUCIONA TU ERROR)
+   0. REFRESCAR SESIÓN
 ============================================================ */
 await supabase.auth.refreshSession();
 
@@ -98,29 +98,25 @@ await supabase.auth.refreshSession();
    1. SESIÓN
 ============================================================ */
 const { data: { user } } = await supabase.auth.getUser();
-if (!user) location.href = "./login.html";
+if (!user) {
+  location.href = "./login.html";
+}
 
 /* ============================================================
-   2. PERFIL
+   2. PERFIL (SIN BLOQUEO POR ROL)
 ============================================================ */
-const { data: profile } = await supabase
+const { data: profile, error: profileError } = await supabase
   .from("profiles")
   .select("role, avatar_url")
   .eq("id", user.id)
   .maybeSingle();
 
-/* VALIDACIÓN ROBUSTA */
-const role = (profile?.role ?? "").trim().toLowerCase();
-
-if (role !== "familiar") {
-  alert("Solo familiares pueden acceder");
-  location.href = "./login.html";
-}
+console.log("PROFILE EN FORM:", profile, profileError);
 
 document.getElementById("profileEmail").textContent = user.email;
-document.getElementById("profileRole").textContent = "Rol: " + profile.role;
+document.getElementById("profileRole").textContent = "Rol: " + (profile?.role ?? "desconocido");
 
-if (profile.avatar_url) {
+if (profile?.avatar_url) {
   document.getElementById("profileToggle").src = profile.avatar_url;
 }
 
@@ -213,7 +209,10 @@ document.getElementById("btnGuardar").onclick = async () => {
       .update({ nombre, apellidos, curso, fecha_nacimiento })
       .eq("id", hijo_id);
 
-    if (error) return alert("Error actualizando hijo");
+    if (error) {
+      console.error(error);
+      return alert("Error actualizando hijo");
+    }
   } else {
     const { error } = await supabase
       .from("alumnos")
@@ -225,7 +224,10 @@ document.getElementById("btnGuardar").onclick = async () => {
         fecha_nacimiento
       });
 
-    if (error) return alert("Error creando hijo");
+    if (error) {
+      console.error(error);
+      return alert("Error creando hijo");
+    }
   }
 
   alert("Guardado correctamente");
