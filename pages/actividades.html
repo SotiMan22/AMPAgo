@@ -105,9 +105,15 @@ async function navegar() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role")
+    .select("role, avatar_url")
     .eq("id", user.id)
     .maybeSingle();
+
+  // Mantener foto de perfil
+  const icono = document.getElementById("profileToggle");
+  if (icono && profile?.avatar_url) {
+    icono.src = profile.avatar_url;
+  }
 
   switch (profile?.role) {
     case "admin": location.href = "./admin.html"; break;
@@ -117,8 +123,15 @@ async function navegar() {
   }
 }
 
+// VOLVER
 document.getElementById("btnVolver").onclick = navegar;
-document.getElementById("btnInicio").onclick = navegar;
+
+// INICIO (cierre de sesión)
+document.getElementById("btnInicio").onclick = async () => {
+  await supabase.auth.signOut();
+  localStorage.removeItem("invitado");
+  location.href = "./login.html";
+};
 
 /* ================= PERMISOS ================= */
 let puedeGestionar = false;
@@ -268,6 +281,12 @@ document.getElementById("confirmarEliminar").onclick = async () => {
   document.getElementById("btnEliminar").disabled = true;
 
   await cargarActividades();
+};
+
+/* ================= BLOQUEAR RETROCESO ================= */
+history.pushState(null, null, location.href);
+window.onpopstate = function () {
+  history.go(1);
 };
 
 /* ================= INIT ================= */
