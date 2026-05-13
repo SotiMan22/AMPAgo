@@ -4,6 +4,20 @@
   <meta charset="UTF-8">
   <title>Login - AMPAgo</title>
   <link rel="stylesheet" href="../style.css">
+
+  <style>
+    .nav-container {
+      margin: 10px 0 20px 0;
+    }
+    .nav-btn {
+      background: #eee;
+      border: 1px solid #ccc;
+      padding: 6px 12px;
+      margin-right: 10px;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+  </style>
 </head>
 
 <body>
@@ -11,6 +25,12 @@
 <header>AMPAgo</header>
 
 <div class="container">
+
+  <!-- Navegación universal -->
+  <div class="nav-container">
+    <button id="btnVolver" class="nav-btn">Volver</button>
+    <button id="btnInicio" class="nav-btn">Inicio</button>
+  </div>
 
   <h2>Iniciar sesión</h2>
 
@@ -31,15 +51,30 @@
 </div>
 
 <script type="module">
-console.log("SCRIPT CARGA OK");
 import { supabase } from "../js/supabaseclientes.js";
 
-document.addEventListener("DOMContentLoaded", () => {
-console.log("DOM listo");
+/* ============================================================
+   1. NAVEGACIÓN UNIVERSAL
+============================================================ */
+document.getElementById("btnVolver").onclick = () => {
+  location.href = "./invitado.html";
+};
+
+document.getElementById("btnInicio").onclick = () => {
+  location.href = "./login.html";
+};
 
 /* ============================================================
-   1. LOGIN
-   ============================================================ */
+   2. BLOQUEAR RETROCESO
+============================================================ */
+history.pushState(null, null, location.href);
+window.onpopstate = function () {
+  history.go(1);
+};
+
+/* ============================================================
+   3. LOGIN
+============================================================ */
 document.getElementById("btnLogin").onclick = async () => {
 
   const email = document.getElementById("email").value.trim();
@@ -105,23 +140,23 @@ document.getElementById("btnLogin").onclick = async () => {
 };
 
 /* ============================================================
-   2. INVITADO
-   ============================================================ */
+   4. INVITADO
+============================================================ */
 document.getElementById("btnInvitado").onclick = () => {
   localStorage.setItem("invitado", "true");
   location.href = "./invitado.html";
 };
 
 /* ============================================================
-   3. REGISTRO
-   ============================================================ */
+   5. REGISTRO
+============================================================ */
 document.getElementById("btnCrearCuenta").onclick = () => {
-  location.href = "./register.html";
+  location.href = "./register-familiar.html";
 };
 
 /* ============================================================
-   4. AUTO LOGIN (SOLO DEV)
-   ============================================================ */
+   6. AUTO LOGIN (SOLO DEV)
+============================================================ */
 document.getElementById("btnAutoLogin").onclick = async () => {
   try {
     const { error } = await supabase.auth.signInWithPassword({
@@ -137,7 +172,6 @@ document.getElementById("btnAutoLogin").onclick = async () => {
     alert("Error: " + e.message);
   }
 };
-});
 </script>
 
 </body>
