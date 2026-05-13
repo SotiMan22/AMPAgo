@@ -12,7 +12,7 @@
   Panel Familiar
 
   <div class="profile-menu">
-    <img src="../imagenes/familiar.png" class="profile-icon" id="profileToggle">
+    <img src="../img/user.png" class="profile-icon" id="profileToggle">
 
     <div class="profile-dropdown" id="profileDropdown">
       <p id="profileEmail"></p>
@@ -24,11 +24,19 @@
 
 <div class="container">
 
-  <h2 id="bienvenida"></h2>
+  <h2>Bienvenido</h2>
 
-  <button onclick="location.href='./mis-hijos.html'">Mis hijos</button>
-  <button onclick="location.href='./actividades.html'">Actividades disponibles</button>
-  <button onclick="location.href='./anuncios.html'">Tablón de anuncios</button>
+  <button onclick="location.href='./mis-hijos.html'">
+    Mis hijos
+  </button>
+
+  <button onclick="location.href='./actividades.html'">
+    Actividades disponibles
+  </button>
+
+  <button onclick="location.href='./anuncios.html'">
+    Tablón de anuncios
+  </button>
 
 </div>
 
@@ -36,55 +44,55 @@
 import { supabase } from "../js/supabaseclientes.js";
 
 /* ============================================================
-   1. SESIÓN
+   BLOQUEAR BOTÓN ATRÁS
+============================================================ */
+window.history.pushState(null, "", window.location.href);
+window.addEventListener("popstate", () => {
+  window.history.pushState(null, "", window.location.href);
+});
+
+/* ============================================================
+   SESIÓN
 ============================================================ */
 const { data: { user } } = await supabase.auth.getUser();
 if (!user) location.href = "./login.html";
 
 /* ============================================================
-   2. PERFIL — NO EXPULSAR SI TARDA EN CARGAR
+   PERFIL — CORREGIDO PARA NO EXPULSAR SI TARDA EN CARGAR
 ============================================================ */
 const { data: profile, error } = await supabase
   .from("profiles")
-  .select("role, nombre, apellidos, avatar_url")
+  .select("role, nombre, apellidos")
   .eq("id", user.id)
   .maybeSingle();
 
-console.log("DEBUG PERFIL FAMILIAR:", profile, error);
+console.log("DEBUG PERFIL:", profile, error);
 
-/* Error grave → expulsar */
+/* Error real → expulsar */
 if (error) {
-  alert("Error cargando perfil");
+  alert("No se pudo cargar el perfil");
   location.href = "./login.html";
 }
 
 /* ============================================================
-   3. CONTROL DE ACCESO — SOLO EXPULSA SI EL ROL ES INCORRECTO
+   CONTROL DE ACCESO — SOLO EXPULSA SI EL ROL ES INCORRECTO
 ============================================================ */
 const role = (profile?.role ?? "").trim().toLowerCase();
 
-/* Si el rol llega vacío o tarda → NO expulsar */
+/* Si el rol llega vacío (carga lenta) → NO expulsar */
 if (role && role !== "familiar") {
   alert("Acceso restringido a familiares");
   location.href = "./login.html";
 }
 
 /* ============================================================
-   4. UI PERFIL + BIENVENIDA
+   UI PERFIL
 ============================================================ */
-document.getElementById("profileEmail").textContent = user.email;
+document.getElementById("profileEmail").textContent = user.email || "";
 document.getElementById("profileRole").textContent = "Rol: familiar";
 
-document.getElementById("bienvenida").textContent =
-  `Bienvenido, ${profile?.nombre ?? ""} ${profile?.apellidos ?? ""}`;
-
-/* Avatar */
-if (profile?.avatar_url) {
-  document.getElementById("profileToggle").src = profile.avatar_url;
-}
-
 /* ============================================================
-   5. MENÚ PERFIL
+   MENÚ PERFIL
 ============================================================ */
 document.getElementById("profileToggle").onclick = () => {
   const d = document.getElementById("profileDropdown");
@@ -98,7 +106,7 @@ document.addEventListener("click", (e) => {
 });
 
 /* ============================================================
-   6. LOGOUT
+   LOGOUT
 ============================================================ */
 document.getElementById("logoutBtn").onclick = async () => {
   await supabase.auth.signOut();
