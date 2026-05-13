@@ -8,7 +8,19 @@
 
 <body>
 
-<header>Hijo</header>
+<header>
+  Hijo
+
+  <div class="profile-menu">
+    <img src="../img/user.png" class="profile-icon" id="profileToggle">
+
+    <div class="profile-dropdown" id="profileDropdown">
+      <p id="profileEmail"></p>
+      <p id="profileRole"></p>
+      <button id="logoutBtn">Cerrar sesión</button>
+    </div>
+  </div>
+</header>
 
 <div class="container">
 
@@ -20,25 +32,18 @@
   <input id="fecha_nacimiento" type="date">
 
   <button id="btnGuardar">Guardar</button>
-  <button onclick="location.href='./mis-hijos.html'">Volver</button>
+  <button id="btnVolver">Volver</button>
 
 </div>
 
 <script type="module">
 import { supabase } from "../js/supabaseclientes.js";
 
-/* ============================================================
-   1. SESIÓN
-============================================================ */
+/* SESIÓN */
 const { data: { user } } = await supabase.auth.getUser();
+if (!user) location.href = "./login.html";
 
-if (!user) {
-  location.href = "./login.html";
-}
-
-/* ============================================================
-   2. PERFIL
-============================================================ */
+/* PERFIL */
 const { data: profile } = await supabase
   .from("profiles")
   .select("role")
@@ -50,30 +55,51 @@ if (!profile || profile.role !== "familiar") {
   location.href = "./login.html";
 }
 
-/* ============================================================
-   3. ID HIJO
-============================================================ */
+/* UI PERFIL */
+document.getElementById("profileEmail").textContent = user.email;
+document.getElementById("profileRole").textContent = "Rol: " + profile.role;
+
+/* MENÚ PERFIL */
+document.getElementById("profileToggle").onclick = () => {
+  const d = document.getElementById("profileDropdown");
+  d.style.display = d.style.display === "block" ? "none" : "block";
+};
+
+document.addEventListener("click", (e) => {
+  if (!e.target.closest(".profile-menu")) {
+    document.getElementById("profileDropdown").style.display = "none";
+  }
+});
+
+/* LOGOUT */
+document.getElementById("logoutBtn").onclick = async () => {
+  await supabase.auth.signOut();
+  localStorage.removeItem("invitado");
+  location.href = "./login.html";
+};
+
+/* VOLVER */
+document.getElementById("btnVolver").onclick = () => {
+  location.href = "./mis-hijos.html";
+};
+
+/* ID HIJO */
 const params = new URLSearchParams(window.location.search);
 const id = params.get("id");
 
-/* ============================================================
-   4. MODO EDICIÓN
-============================================================ */
+/* MODO EDICIÓN */
 if (id) {
   document.getElementById("titulo").textContent = "Editar hijo";
   cargarHijo();
 }
 
-/* ============================================================
-   5. CARGAR HIJO
-============================================================ */
+/* CARGAR HIJO */
 async function cargarHijo() {
-
   const { data: hijo, error } = await supabase
     .from("alumnos")
     .select("*")
     .eq("id", id)
-    .eq("familiar_id", user.id)   // Seguridad extra
+    .eq("familiar_id", user.id)
     .maybeSingle();
 
   if (error || !hijo) {
@@ -88,9 +114,7 @@ async function cargarHijo() {
   document.getElementById("fecha_nacimiento").value = hijo.fecha_nacimiento || "";
 }
 
-/* ============================================================
-   6. GUARDAR
-============================================================ */
+/* GUARDAR */
 document.getElementById("btnGuardar").onclick = async () => {
 
   const nombre = document.getElementById("nombre").value.trim();
@@ -118,7 +142,7 @@ document.getElementById("btnGuardar").onclick = async () => {
       .from("alumnos")
       .update(datos)
       .eq("id", id)
-      .eq("familiar_id", user.id); // Seguridad
+      .eq("familiar_id", user.id);
 
     error = res.error;
 
@@ -131,7 +155,6 @@ document.getElementById("btnGuardar").onclick = async () => {
   }
 
   if (error) {
-    console.error(error);
     alert("Error guardando hijo");
     return;
   }
