@@ -75,23 +75,25 @@ import { supabase } from "../js/supabaseclientes.js";
 const { data: { user } } = await supabase.auth.getUser();
 if (!user) location.href = "./login.html";
 
-/* PERFIL — AHORA CON avatar_url */
+/* PERFIL — NO TE ECHA, SOLO AVISA */
 const { data: profile } = await supabase
   .from("profiles")
   .select("role, avatar_url")
   .eq("id", user.id)
   .maybeSingle();
 
-if (!profile || profile.role !== "familiar") {
-  alert("Solo los familiares pueden acceder");
-  location.href = "./login.html";
+console.log("DEBUG PROFILE FORM:", profile);
+
+const role = (profile?.role ?? "").trim().toLowerCase();
+if (role !== "familiar") {
+  console.warn("⚠ ROL INCORRECTO EN FORM:", role);
 }
 
 /* UI PERFIL */
 document.getElementById("profileEmail").textContent = user.email;
-document.getElementById("profileRole").textContent = "Rol: " + profile.role;
+document.getElementById("profileRole").textContent = "Rol: " + (profile?.role ?? "desconocido");
 
-if (profile.avatar_url) {
+if (profile?.avatar_url) {
   document.getElementById("profileToggle").src = profile.avatar_url;
 }
 
@@ -114,7 +116,7 @@ document.getElementById("logoutBtn").onclick = async () => {
   location.href = "./login.html";
 };
 
-/* BOTONES */
+/* BOTONES NAV */
 document.getElementById("btnVolver").onclick = () => {
   location.href = "./mis-hijos.html";
 };
@@ -207,7 +209,10 @@ document.getElementById("btnGuardar").onclick = async () => {
       .eq("id", id)
       .eq("familiar_id", user.id);
 
-    if (error) return alert("Error actualizando hijo");
+    if (error) {
+      alert("Error actualizando hijo");
+      return;
+    }
 
   } else {
     const { data, error } = await supabase
@@ -216,7 +221,10 @@ document.getElementById("btnGuardar").onclick = async () => {
       .select()
       .single();
 
-    if (error) return alert("Error creando hijo");
+    if (error) {
+      alert("Error creando hijo");
+      return;
+    }
 
     hijo_id = data.id;
   }
