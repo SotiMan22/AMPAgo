@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <title>Panel Familiar - AMPAgo</title>
-
   <link rel="stylesheet" href="../style.css">
 </head>
 
@@ -53,7 +52,7 @@ const { data: profile, error } = await supabase
 
 console.log("DEBUG PERFIL FAMILIAR:", profile, error);
 
-/* Si hay error grave de Supabase */
+/* Error grave → expulsar */
 if (error) {
   alert("Error cargando perfil");
   location.href = "./login.html";
