@@ -17,6 +17,19 @@
     .card p {
       margin: 4px 0;
     }
+
+    .nav-container {
+      margin: 10px 0 20px 0;
+    }
+
+    .nav-btn {
+      background: #eee;
+      border: 1px solid #ccc;
+      padding: 6px 12px;
+      margin-right: 10px;
+      cursor: pointer;
+      border-radius: 4px;
+    }
   </style>
 </head>
 
@@ -38,11 +51,15 @@
 
 <div class="container">
 
+  <!-- Navegación universal -->
+  <div class="nav-container">
+    <button id="btnVolver" class="nav-btn">Volver</button>
+    <button id="btnInicio" class="nav-btn">Inicio</button>
+  </div>
+
   <h2 id="titulo">Alumnos</h2>
 
   <div id="lista"></div>
-
-  <button onclick="location.href='./mis-actividades.html'">Volver</button>
 
 </div>
 
@@ -63,7 +80,7 @@ if (!user) {
 ============================================================ */
 const { data: profile } = await supabase
   .from("profiles")
-  .select("role")
+  .select("role, avatar_url")
   .eq("id", user.id)
   .maybeSingle();
 
@@ -85,6 +102,10 @@ if (profile.role !== "monitor") {
 ============================================================ */
 document.getElementById("profileEmail").textContent = user.email || "";
 document.getElementById("profileRole").textContent = "Rol: " + profile.role;
+
+if (profile.avatar_url) {
+  document.getElementById("profileToggle").src = profile.avatar_url;
+}
 
 /* ============================================================
    5. MENÚ PERFIL
@@ -110,7 +131,28 @@ document.getElementById("logoutBtn").onclick = async () => {
 };
 
 /* ============================================================
-   7. ID ACTIVIDAD
+   7. NAVEGACIÓN UNIVERSAL
+============================================================ */
+document.getElementById("btnVolver").onclick = () => {
+  location.href = "./mis-actividades.html";
+};
+
+document.getElementById("btnInicio").onclick = async () => {
+  await supabase.auth.signOut();
+  localStorage.removeItem("invitado");
+  location.href = "./login.html";
+};
+
+/* ============================================================
+   8. BLOQUEAR RETROCESO
+============================================================ */
+history.pushState(null, null, location.href);
+window.onpopstate = function () {
+  history.go(1);
+};
+
+/* ============================================================
+   9. ID ACTIVIDAD
 ============================================================ */
 const params = new URLSearchParams(window.location.search);
 const actividad_id = params.get("id");
@@ -121,7 +163,7 @@ if (!actividad_id) {
 }
 
 /* ============================================================
-   8. VERIFICAR ACTIVIDAD
+   10. VERIFICAR ACTIVIDAD
 ============================================================ */
 const { data: actividad } = await supabase
   .from("actividades")
@@ -137,7 +179,7 @@ if (!actividad || actividad.monitor_id !== user.id) {
 document.getElementById("titulo").textContent = actividad.nombre;
 
 /* ============================================================
-   9. CARGAR ALUMNOS
+   11. CARGAR ALUMNOS
 ============================================================ */
 async function cargarAlumnos() {
 
@@ -166,9 +208,7 @@ async function cargarAlumnos() {
 
   cont.innerHTML = data.map(i => `
     <div class="card">
-      <p><strong>
-        ${i.alumnos?.nombre || ""} ${i.alumnos?.apellidos || ""}
-      </strong></p>
+      <p><strong>${i.alumnos?.nombre || ""} ${i.alumnos?.apellidos || ""}</strong></p>
     </div>
   `).join("");
 }
