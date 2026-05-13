@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <title>Panel Familiar - AMPAgo</title>
 
-  <!-- RUTA CORRECTA PARA VERCEL -->
   <link rel="stylesheet" href="../style.css">
 </head>
 
@@ -14,7 +13,6 @@
   Panel Familiar
 
   <div class="profile-menu">
-    <!-- ICONO DEL FAMILIAR -->
     <img src="../imagenes/familiar.png" class="profile-icon" id="profileToggle">
 
     <div class="profile-dropdown" id="profileDropdown">
@@ -27,20 +25,11 @@
 
 <div class="container">
 
-  <!-- TEXTO DINÁMICO -->
   <h2 id="bienvenida"></h2>
 
-  <button onclick="location.href='./mis-hijos.html'">
-    Mis hijos
-  </button>
-
-  <button onclick="location.href='./actividades.html'">
-    Actividades disponibles
-  </button>
-
-  <button onclick="location.href='./anuncios.html'">
-    Tablón de anuncios
-  </button>
+  <button onclick="location.href='./mis-hijos.html'">Mis hijos</button>
+  <button onclick="location.href='./actividades.html'">Actividades disponibles</button>
+  <button onclick="location.href='./anuncios.html'">Tablón de anuncios</button>
 
 </div>
 
@@ -51,13 +40,10 @@ import { supabase } from "../js/supabaseclientes.js";
    1. SESIÓN
 ============================================================ */
 const { data: { user } } = await supabase.auth.getUser();
-
-if (!user) {
-  location.href = "./login.html";
-}
+if (!user) location.href = "./login.html";
 
 /* ============================================================
-   2. PERFIL — CORREGIDO PARA NO EXPULSAR SI TARDA EN CARGAR
+   2. PERFIL — NO EXPULSAR SI TARDA EN CARGAR
 ============================================================ */
 const { data: profile, error } = await supabase
   .from("profiles")
@@ -65,9 +51,9 @@ const { data: profile, error } = await supabase
   .eq("id", user.id)
   .maybeSingle();
 
-console.log("DEBUG FAMILIAR:", profile, error);
+console.log("DEBUG PERFIL FAMILIAR:", profile, error);
 
-/* Si hay error grave, sí expulsamos */
+/* Si hay error grave de Supabase */
 if (error) {
   alert("Error cargando perfil");
   location.href = "./login.html";
@@ -78,7 +64,7 @@ if (error) {
 ============================================================ */
 const role = (profile?.role ?? "").trim().toLowerCase();
 
-/* Si el rol llega vacío, null o tarda → NO expulsamos */
+/* Si el rol llega vacío o tarda → NO expulsar */
 if (role && role !== "familiar") {
   alert("Acceso restringido a familiares");
   location.href = "./login.html";
@@ -87,13 +73,13 @@ if (role && role !== "familiar") {
 /* ============================================================
    4. UI PERFIL + BIENVENIDA
 ============================================================ */
-document.getElementById("profileEmail").textContent = user.email || "";
+document.getElementById("profileEmail").textContent = user.email;
 document.getElementById("profileRole").textContent = "Rol: familiar";
 
 document.getElementById("bienvenida").textContent =
   `Bienvenido, ${profile?.nombre ?? ""} ${profile?.apellidos ?? ""}`;
 
-/* Mostrar avatar si existe */
+/* Avatar */
 if (profile?.avatar_url) {
   document.getElementById("profileToggle").src = profile.avatar_url;
 }
