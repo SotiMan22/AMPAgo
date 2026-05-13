@@ -66,18 +66,11 @@
 <script type="module">
 import { supabase } from "../js/supabaseclientes.js";
 
-/* ============================================================
-   1. SESIÓN
-============================================================ */
+/* SESIÓN */
 const { data: { user } } = await supabase.auth.getUser();
+if (!user) location.href = "./login.html";
 
-if (!user) {
-  location.href = "./login.html";
-}
-
-/* ============================================================
-   2. PERFIL
-============================================================ */
+/* PERFIL */
 const { data: profile } = await supabase
   .from("profiles")
   .select("role")
@@ -89,15 +82,11 @@ if (!profile || profile.role !== "familiar") {
   location.href = "./login.html";
 }
 
-/* ============================================================
-   3. UI PERFIL
-============================================================ */
-document.getElementById("profileEmail").textContent = user.email || "";
+/* UI PERFIL */
+document.getElementById("profileEmail").textContent = user.email;
 document.getElementById("profileRole").textContent = "Rol: " + profile.role;
 
-/* ============================================================
-   4. MENÚ PERFIL
-============================================================ */
+/* MENÚ PERFIL */
 document.getElementById("profileToggle").onclick = () => {
   const d = document.getElementById("profileDropdown");
   d.style.display = d.style.display === "block" ? "none" : "block";
@@ -109,20 +98,15 @@ document.addEventListener("click", (e) => {
   }
 });
 
-/* ============================================================
-   5. LOGOUT
-============================================================ */
+/* LOGOUT */
 document.getElementById("logoutBtn").onclick = async () => {
   await supabase.auth.signOut();
   localStorage.removeItem("invitado");
   location.href = "./login.html";
 };
 
-/* ============================================================
-   6. CARGAR HIJOS
-============================================================ */
+/* CARGAR HIJOS */
 async function cargarHijos() {
-
   const { data, error } = await supabase
     .from("alumnos")
     .select("*")
@@ -132,7 +116,6 @@ async function cargarHijos() {
   const cont = document.getElementById("lista");
 
   if (error) {
-    console.error(error);
     cont.innerHTML = "<p>Error cargando hijos.</p>";
     return;
   }
@@ -148,22 +131,15 @@ async function cargarHijos() {
       <p><strong>Curso:</strong> ${h.curso || "—"}</p>
       <p><strong>Nacimiento:</strong> ${h.fecha_nacimiento || "—"}</p>
 
-      <button onclick="location.href='./mis-hijos-form.html?id=${h.id}'">
-        Editar
-      </button>
-
-      <button onclick="location.href='./mis-hijos-actividades.html?id=${h.id}'">
-        Inscribir en actividades
-      </button>
+      <button onclick="location.href='./mis-hijos-form.html?id=${h.id}'">Editar</button>
+      <button onclick="location.href='./mis-hijos-actividades.html?id=${h.id}'">Inscribir en actividades</button>
     </div>
   `).join("");
 }
 
 cargarHijos();
 
-/* ============================================================
-   7. NUEVO HIJO
-============================================================ */
+/* NUEVO HIJO */
 document.getElementById("btnNuevo").onclick = () => {
   location.href = "./mis-hijos-form.html";
 };
