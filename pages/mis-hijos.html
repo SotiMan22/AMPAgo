@@ -190,7 +190,7 @@ async function cargarHijos() {
     <div class="card">
       <h3>${h.nombre} ${h.apellidos}</h3>
       <p><strong>Curso:</strong> ${h.curso || "—"}</p>
-      <p><strong>Nacimiento:</strong> ${h.nacimiento || "—"}</p>
+      <p><strong>Nacimiento:</strong> ${h.fecha_nacimiento || "—"}</p>
 
       <button onclick="location.href='./mis-hijos-form.html?id=${h.id}'">
         Editar
