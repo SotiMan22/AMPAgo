@@ -92,11 +92,13 @@ const { data: profile, error } = await supabase
   .eq("id", user.id)
   .maybeSingle();
 
+/* Error real → expulsar */
 if (error) {
   alert("Error cargando perfil");
   location.href = "./login.html";
 }
 
+/* Rol seguro */
 const role = (profile?.role ?? "").trim().toLowerCase();
 
 /* SOLO expulsar si el rol REAL es incorrecto */
@@ -111,7 +113,7 @@ if (role && role !== "monitor") {
 document.getElementById("profileEmail").textContent = user.email || "";
 document.getElementById("profileRole").textContent = "Rol: monitor";
 
-// Avatar persistente
+/* Avatar persistente */
 if (profile?.avatar_url) {
   document.getElementById("profileToggle").src = profile.avatar_url;
 }
