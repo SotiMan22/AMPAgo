@@ -14,7 +14,9 @@
   Panel Familiar
 
   <div class="profile-menu">
+    <!-- ICONO DEL FAMILIAR -->
     <img src="../imagenes/familiar.png" class="profile-icon" id="profileToggle">
+
     <div class="profile-dropdown" id="profileDropdown">
       <p id="profileEmail"></p>
       <p id="profileRole"></p>
@@ -32,7 +34,7 @@
     Mis hijos
   </button>
 
-  <button onclick="location.href='./actividades-disponibles.html'">
+  <button onclick="location.href='./actividades.html'">
     Actividades disponibles
   </button>
 
@@ -43,12 +45,10 @@
 </div>
 
 <script type="module">
-
-/* RUTA CORRECTA PARA VERCEL */
 import { supabase } from "../js/supabaseclientes.js";
 
 /* ============================================================
-   SESIÓN
+   1. SESIÓN
 ============================================================ */
 const { data: { user } } = await supabase.auth.getUser();
 
@@ -57,7 +57,7 @@ if (!user) {
 }
 
 /* ============================================================
-   PERFIL
+   2. PERFIL
 ============================================================ */
 const { data: profile, error } = await supabase
   .from("profiles")
@@ -71,7 +71,7 @@ if (error || !profile) {
 }
 
 /* ============================================================
-   CONTROL DE ACCESO
+   3. CONTROL DE ACCESO
 ============================================================ */
 if (profile.role !== "familiar") {
   alert("Acceso restringido a familiares");
@@ -79,7 +79,7 @@ if (profile.role !== "familiar") {
 }
 
 /* ============================================================
-   UI PERFIL + BIENVENIDA
+   4. UI PERFIL + BIENVENIDA
 ============================================================ */
 document.getElementById("profileEmail").textContent = user.email || "";
 document.getElementById("profileRole").textContent = "Rol: " + profile.role;
@@ -88,7 +88,7 @@ document.getElementById("bienvenida").textContent =
   `Bienvenido, ${profile.role} ${profile.nombre} ${profile.apellidos}`;
 
 /* ============================================================
-   MENÚ PERFIL
+   5. MENÚ PERFIL
 ============================================================ */
 document.getElementById("profileToggle").onclick = () => {
   const d = document.getElementById("profileDropdown");
@@ -102,7 +102,7 @@ document.addEventListener("click", (e) => {
 });
 
 /* ============================================================
-   LOGOUT
+   6. LOGOUT
 ============================================================ */
 document.getElementById("logoutBtn").onclick = async () => {
   await supabase.auth.signOut();
