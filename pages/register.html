@@ -4,6 +4,20 @@
   <meta charset="UTF-8">
   <title>Crear cuenta - AMPAgo</title>
   <link rel="stylesheet" href="../style.css">
+
+  <style>
+    .nav-container {
+      margin: 10px 0 20px 0;
+    }
+    .nav-btn {
+      background: #eee;
+      border: 1px solid #ccc;
+      padding: 6px 12px;
+      margin-right: 10px;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+  </style>
 </head>
 
 <body>
@@ -11,6 +25,12 @@
 <header>AMPAgo</header>
 
 <div class="container">
+
+  <!-- Navegación universal -->
+  <div class="nav-container">
+    <button id="btnVolver" class="nav-btn">Volver</button>
+    <button id="btnInicio" class="nav-btn">Inicio</button>
+  </div>
 
   <h2>Crear cuenta (solo admin)</h2>
 
@@ -25,7 +45,6 @@
   </select>
 
   <button id="btnRegister">Crear cuenta</button>
-  <button onclick="location.href='./admin.html'">Volver</button>
 
 </div>
 
@@ -46,7 +65,7 @@ if (!user) {
 ============================================================ */
 const { data: profile } = await supabase
   .from("profiles")
-  .select("role")
+  .select("role, avatar_url")
   .eq("id", user.id)
   .maybeSingle();
 
@@ -56,7 +75,36 @@ if (!profile || profile.role !== "admin") {
 }
 
 /* ============================================================
-   3. CREAR USUARIO (SIN AUTO LOGIN)
+   3. AVATAR PERSISTENTE (si existe)
+============================================================ */
+if (profile.avatar_url) {
+  const icono = document.getElementById("profileToggle");
+  if (icono) icono.src = profile.avatar_url;
+}
+
+/* ============================================================
+   4. NAVEGACIÓN UNIVERSAL
+============================================================ */
+document.getElementById("btnVolver").onclick = () => {
+  location.href = "./admin.html";
+};
+
+document.getElementById("btnInicio").onclick = async () => {
+  await supabase.auth.signOut();
+  localStorage.removeItem("invitado");
+  location.href = "./login.html";
+};
+
+/* ============================================================
+   5. BLOQUEAR RETROCESO
+============================================================ */
+history.pushState(null, null, location.href);
+window.onpopstate = function () {
+  history.go(1);
+};
+
+/* ============================================================
+   6. CREAR USUARIO (SIN AUTO LOGIN)
 ============================================================ */
 document.getElementById("btnRegister").onclick = async () => {
 
