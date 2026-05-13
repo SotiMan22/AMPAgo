@@ -4,20 +4,6 @@
   <meta charset="UTF-8">
   <title>Login - AMPAgo</title>
   <link rel="stylesheet" href="../style.css">
-
-  <style>
-    .nav-container {
-      margin: 10px 0 20px 0;
-    }
-    .nav-btn {
-      background: #eee;
-      border: 1px solid #ccc;
-      padding: 6px 12px;
-      margin-right: 10px;
-      cursor: pointer;
-      border-radius: 4px;
-    }
-  </style>
 </head>
 
 <body>
@@ -25,12 +11,6 @@
 <header>AMPAgo</header>
 
 <div class="container">
-
-  <!-- Navegación universal -->
-  <div class="nav-container">
-    <button id="btnVolver" class="nav-btn">Volver</button>
-    <button id="btnInicio" class="nav-btn">Inicio</button>
-  </div>
 
   <h2>Iniciar sesión</h2>
 
@@ -54,26 +34,7 @@
 import { supabase } from "../js/supabaseclientes.js";
 
 /* ============================================================
-   1. NAVEGACIÓN UNIVERSAL
-============================================================ */
-document.getElementById("btnVolver").onclick = () => {
-  location.href = "./invitado.html";
-};
-
-document.getElementById("btnInicio").onclick = () => {
-  location.href = "./login.html";
-};
-
-/* ============================================================
-   2. BLOQUEAR RETROCESO
-============================================================ */
-history.pushState(null, null, location.href);
-window.onpopstate = function () {
-  history.go(1);
-};
-
-/* ============================================================
-   3. LOGIN
+   LOGIN
 ============================================================ */
 document.getElementById("btnLogin").onclick = async () => {
 
@@ -90,7 +51,6 @@ document.getElementById("btnLogin").onclick = async () => {
   btn.textContent = "Entrando...";
 
   try {
-    /* 1. Autenticación */
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password
@@ -100,35 +60,19 @@ document.getElementById("btnLogin").onclick = async () => {
 
     const user = data.user;
 
-    /* Limpia modo invitado */
     localStorage.removeItem("invitado");
 
-    /* 2. Obtener perfil */
-    const { data: profile, error: profileError } = await supabase
+    const { data: profile } = await supabase
       .from("profiles")
       .select("role")
       .eq("id", user.id)
       .single();
 
-    if (profileError) {
-      console.error(profileError);
-      throw new Error("No se pudo cargar el perfil");
-    }
-
-    /* 3. Redirección por rol */
     switch (profile.role) {
-      case "admin":
-        location.href = "./admin.html";
-        break;
-      case "familiar":
-        location.href = "./familiar.html";
-        break;
-      case "monitor":
-        location.href = "./monitor.html";
-        break;
-      default:
-        location.href = "./invitado.html";
-        break;
+      case "admin": location.href = "./admin.html"; break;
+      case "familiar": location.href = "./familiar.html"; break;
+      case "monitor": location.href = "./monitor.html"; break;
+      default: location.href = "./invitado.html";
     }
 
   } catch (e) {
@@ -140,7 +84,7 @@ document.getElementById("btnLogin").onclick = async () => {
 };
 
 /* ============================================================
-   4. INVITADO
+   INVITADO
 ============================================================ */
 document.getElementById("btnInvitado").onclick = () => {
   localStorage.setItem("invitado", "true");
@@ -148,14 +92,14 @@ document.getElementById("btnInvitado").onclick = () => {
 };
 
 /* ============================================================
-   5. REGISTRO
+   REGISTRO
 ============================================================ */
 document.getElementById("btnCrearCuenta").onclick = () => {
   location.href = "./register-familiar.html";
 };
 
 /* ============================================================
-   6. AUTO LOGIN (SOLO DEV)
+   AUTO LOGIN (DEV)
 ============================================================ */
 document.getElementById("btnAutoLogin").onclick = async () => {
   try {
