@@ -65,7 +65,7 @@ if (!user) {
 ============================================================ */
 const { data: profile } = await supabase
   .from("profiles")
-  .select("role, avatar_url")
+  .select("role")
   .eq("id", user.id)
   .maybeSingle();
 
@@ -75,15 +75,7 @@ if (!profile || profile.role !== "admin") {
 }
 
 /* ============================================================
-   3. AVATAR PERSISTENTE (si existe)
-============================================================ */
-if (profile.avatar_url) {
-  const icono = document.getElementById("profileToggle");
-  if (icono) icono.src = profile.avatar_url;
-}
-
-/* ============================================================
-   4. NAVEGACIÓN UNIVERSAL
+   3. NAVEGACIÓN UNIVERSAL
 ============================================================ */
 document.getElementById("btnVolver").onclick = () => {
   location.href = "./admin.html";
@@ -96,7 +88,7 @@ document.getElementById("btnInicio").onclick = async () => {
 };
 
 /* ============================================================
-   5. BLOQUEAR RETROCESO
+   4. BLOQUEAR RETROCESO
 ============================================================ */
 history.pushState(null, null, location.href);
 window.onpopstate = function () {
@@ -104,7 +96,7 @@ window.onpopstate = function () {
 };
 
 /* ============================================================
-   6. CREAR USUARIO (SIN AUTO LOGIN)
+   5. CREAR USUARIO (SIN AUTO LOGIN)
 ============================================================ */
 document.getElementById("btnRegister").onclick = async () => {
 
@@ -162,7 +154,6 @@ document.getElementById("btnRegister").onclick = async () => {
     localStorage.removeItem("invitado");
 
     alert("Cuenta creada correctamente");
-
     location.href = "./admin.html";
 
   } catch (err) {
