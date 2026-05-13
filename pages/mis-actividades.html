@@ -27,6 +27,19 @@
       border-radius: 6px;
       cursor: pointer;
     }
+
+    .nav-container {
+      margin: 10px 0 20px 0;
+    }
+
+    .nav-btn {
+      background: #eee;
+      border: 1px solid #ccc;
+      padding: 6px 12px;
+      margin-right: 10px;
+      cursor: pointer;
+      border-radius: 4px;
+    }
   </style>
 </head>
 
@@ -47,6 +60,13 @@
 </header>
 
 <div class="container">
+
+  <!-- Navegación universal -->
+  <div class="nav-container">
+    <button id="btnVolver" class="nav-btn">Volver</button>
+    <button id="btnInicio" class="nav-btn">Inicio</button>
+  </div>
+
   <h2>Actividades asignadas</h2>
   <div id="lista"></div>
 </div>
@@ -66,33 +86,30 @@ if (!user) {
 /* ============================================================
    2. PERFIL
 ============================================================ */
-const { data: profile, error } = await supabase
+const { data: profile } = await supabase
   .from("profiles")
-  .select("role")
+  .select("role, avatar_url")
   .eq("id", user.id)
   .maybeSingle();
 
-if (error || !profile) {
-  alert("No se pudo cargar el perfil");
-  location.href = "./login.html";
-}
-
-/* ============================================================
-   3. CONTROL DE ACCESO
-============================================================ */
-if (profile.role !== "monitor") {
+if (!profile || profile.role !== "monitor") {
   alert("Solo los monitores pueden acceder");
   location.href = "./login.html";
 }
 
 /* ============================================================
-   4. UI PERFIL
+   3. UI PERFIL
 ============================================================ */
 document.getElementById("profileEmail").textContent = user.email || "";
 document.getElementById("profileRole").textContent = "Rol: " + profile.role;
 
+// Avatar persistente
+if (profile.avatar_url) {
+  document.getElementById("profileToggle").src = profile.avatar_url;
+}
+
 /* ============================================================
-   5. MENÚ PERFIL
+   4. MENÚ PERFIL
 ============================================================ */
 document.getElementById("profileToggle").onclick = () => {
   const d = document.getElementById("profileDropdown");
@@ -106,7 +123,7 @@ document.addEventListener("click", (e) => {
 });
 
 /* ============================================================
-   6. LOGOUT
+   5. LOGOUT
 ============================================================ */
 document.getElementById("logoutBtn").onclick = async () => {
   await supabase.auth.signOut();
@@ -115,7 +132,28 @@ document.getElementById("logoutBtn").onclick = async () => {
 };
 
 /* ============================================================
-   7. ACTIVIDADES DEL MONITOR
+   6. NAVEGACIÓN UNIVERSAL
+============================================================ */
+document.getElementById("btnVolver").onclick = () => {
+  location.href = "./monitor.html";
+};
+
+document.getElementById("btnInicio").onclick = async () => {
+  await supabase.auth.signOut();
+  localStorage.removeItem("invitado");
+  location.href = "./login.html";
+};
+
+/* ============================================================
+   7. BLOQUEAR RETROCESO
+============================================================ */
+history.pushState(null, null, location.href);
+window.onpopstate = function () {
+  history.go(1);
+};
+
+/* ============================================================
+   8. ACTIVIDADES DEL MONITOR
 ============================================================ */
 async function cargarActividades() {
   const { data, error } = await supabase
