@@ -61,10 +61,16 @@
 <script type="module">
 import { supabase } from "../js/supabaseclientes.js";
 
+/* ================= SESIÓN ================= */
+const esInvitado = localStorage.getItem("invitado") === "true";
+const { data: { user } } = await supabase.auth.getUser();
+
+if (!user && !esInvitado) {
+  location.href = "./login.html";
+}
+
 /* ================= NAVEGACIÓN UNIVERSAL ================= */
 async function navegar() {
-  const esInvitado = localStorage.getItem("invitado") === "true";
-
   if (esInvitado) {
     location.href = "./invitado.html";
     return;
@@ -78,9 +84,15 @@ async function navegar() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role")
+    .select("role, avatar_url")
     .eq("id", user.id)
     .maybeSingle();
+
+  // Mantener foto de perfil
+  const icono = document.getElementById("profileToggle");
+  if (icono && profile?.avatar_url) {
+    icono.src = profile.avatar_url;
+  }
 
   switch (profile?.role) {
     case "admin": location.href = "./admin.html"; break;
@@ -91,15 +103,13 @@ async function navegar() {
 }
 
 document.getElementById("btnVolver").onclick = navegar;
-document.getElementById("btnInicio").onclick = navegar;
 
-/* ================= SESIÓN ================= */
-const { data: { user } } = await supabase.auth.getUser();
-const esInvitado = localStorage.getItem("invitado") === "true";
-
-if (!user && !esInvitado) {
+/* ================= INICIO (CERRAR SESIÓN) ================= */
+document.getElementById("btnInicio").onclick = async () => {
+  await supabase.auth.signOut();
+  localStorage.removeItem("invitado");
   location.href = "./login.html";
-}
+};
 
 /* ================= PERMISOS ================= */
 let role = null;
@@ -151,6 +161,12 @@ cargarAnuncios();
 /* ================= BOTÓN CREAR ================= */
 document.getElementById("btnCrear").onclick = () => {
   location.href = "./anuncios-form.html";
+};
+
+/* ================= BLOQUEAR RETROCESO ================= */
+history.pushState(null, null, location.href);
+window.onpopstate = function () {
+  history.go(1);
 };
 </script>
 
