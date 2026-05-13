@@ -4,6 +4,21 @@
   <meta charset="UTF-8">
   <title>Hijo - AMPAgo</title>
   <link rel="stylesheet" href="../style.css">
+
+  <style>
+    .nav-container {
+      margin: 10px 0 20px 0;
+    }
+
+    .nav-btn {
+      background: #eee;
+      border: 1px solid #ccc;
+      padding: 6px 12px;
+      margin-right: 10px;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+  </style>
 </head>
 
 <body>
@@ -24,6 +39,12 @@
 
 <div class="container">
 
+  <!-- BOTONES VOLVER + INICIO -->
+  <div class="nav-container">
+    <button id="btnVolver" class="nav-btn">Volver</button>
+    <button id="btnInicio" class="nav-btn">Inicio</button>
+  </div>
+
   <h2 id="titulo">Añadir hijo</h2>
 
   <input id="nombre" type="text" placeholder="Nombre">
@@ -32,7 +53,6 @@
   <input id="fecha_nacimiento" type="date">
 
   <button id="btnGuardar">Guardar</button>
-  <button id="btnVolver">Volver</button>
 
 </div>
 
@@ -78,9 +98,16 @@ document.getElementById("logoutBtn").onclick = async () => {
   location.href = "./login.html";
 };
 
-/* VOLVER */
+/* BOTÓN VOLVER */
 document.getElementById("btnVolver").onclick = () => {
   location.href = "./mis-hijos.html";
+};
+
+/* BOTÓN INICIO */
+document.getElementById("btnInicio").onclick = async () => {
+  await supabase.auth.signOut();
+  localStorage.removeItem("invitado");
+  location.href = "./login.html";
 };
 
 /* ID HIJO */
