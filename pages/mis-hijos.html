@@ -34,6 +34,19 @@
       cursor: pointer;
       margin-bottom: 20px;
     }
+
+    .nav-container {
+      margin: 10px 0 20px 0;
+    }
+
+    .nav-btn {
+      background: #eee;
+      border: 1px solid #ccc;
+      padding: 6px 12px;
+      margin-right: 10px;
+      cursor: pointer;
+      border-radius: 4px;
+    }
   </style>
 </head>
 
@@ -54,6 +67,12 @@
 </header>
 
 <div class="container">
+
+  <!-- Navegación universal -->
+  <div class="nav-container">
+    <button id="btnVolver" class="nav-btn">Volver</button>
+    <button id="btnInicio" class="nav-btn">Inicio</button>
+  </div>
 
   <h2>Mis hijos</h2>
 
@@ -80,7 +99,7 @@ if (!user) {
 ============================================================ */
 const { data: profile } = await supabase
   .from("profiles")
-  .select("role")
+  .select("role, avatar_url, nombre, apellidos")
   .eq("id", user.id)
   .maybeSingle();
 
@@ -94,6 +113,11 @@ if (!profile || profile.role !== "familiar") {
 ============================================================ */
 document.getElementById("profileEmail").textContent = user.email || "";
 document.getElementById("profileRole").textContent = "Rol: " + profile.role;
+
+// Avatar persistente
+if (profile.avatar_url) {
+  document.getElementById("profileToggle").src = profile.avatar_url;
+}
 
 /* ============================================================
    4. MENÚ PERFIL
@@ -119,7 +143,28 @@ document.getElementById("logoutBtn").onclick = async () => {
 };
 
 /* ============================================================
-   6. CARGAR HIJOS
+   6. NAVEGACIÓN UNIVERSAL
+============================================================ */
+document.getElementById("btnVolver").onclick = () => {
+  location.href = "./familiar.html";
+};
+
+document.getElementById("btnInicio").onclick = async () => {
+  await supabase.auth.signOut();
+  localStorage.removeItem("invitado");
+  location.href = "./login.html";
+};
+
+/* ============================================================
+   7. BLOQUEAR RETROCESO
+============================================================ */
+history.pushState(null, null, location.href);
+window.onpopstate = function () {
+  history.go(1);
+};
+
+/* ============================================================
+   8. CARGAR HIJOS
 ============================================================ */
 async function cargarHijos() {
 
@@ -162,7 +207,7 @@ async function cargarHijos() {
 cargarHijos();
 
 /* ============================================================
-   7. NUEVO HIJO
+   9. NUEVO HIJO
 ============================================================ */
 document.getElementById("btnNuevo").onclick = () => {
   location.href = "./mis-hijos-form.html";
