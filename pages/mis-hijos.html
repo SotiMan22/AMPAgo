@@ -95,16 +95,12 @@ const { data: profile } = await supabase
   .eq("id", user.id)
   .maybeSingle();
 
-if (!profile || profile.role !== "familiar") {
-  alert("Solo los familiares pueden acceder");
-  location.href = "./login.html";
-}
+console.log("DEBUG PROFILE LISTA:", profile);
 
-/* UI PERFIL */
 document.getElementById("profileEmail").textContent = user.email;
-document.getElementById("profileRole").textContent = "Rol: " + profile.role;
+document.getElementById("profileRole").textContent = "Rol: " + (profile?.role ?? "desconocido");
 
-if (profile.avatar_url) {
+if (profile?.avatar_url) {
   document.getElementById("profileToggle").src = profile.avatar_url;
 }
 
