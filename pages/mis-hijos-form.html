@@ -2,13 +2,43 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Hijo - AMPAgo</title>
+  <title>Formulario hijo - AMPAgo</title>
   <link rel="stylesheet" href="../style.css">
 
   <style>
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    #btnGuardar {
+      background: #2e7d32;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 15px;
+    }
+
+    #btnActividades {
+      background: #1976d2;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 15px;
+      display: none;
+    }
+
     .nav-container {
       margin: 10px 0 20px 0;
     }
+
     .nav-btn {
       background: #eee;
       border: 1px solid #ccc;
@@ -22,7 +52,19 @@
 
 <body>
 
-<header>Hijo</header>
+<header>
+  Formulario hijo
+
+  <div class="profile-menu">
+    <img src="../img/user.png" class="profile-icon" id="profileToggle">
+
+    <div class="profile-dropdown" id="profileDropdown">
+      <p id="profileEmail"></p>
+      <p id="profileRole"></p>
+      <button id="logoutBtn">Cerrar sesión</button>
+    </div>
+  </div>
+</header>
 
 <div class="container">
 
@@ -41,6 +83,8 @@
 
   <button id="btnGuardar">Guardar</button>
 
+  <button id="btnActividades">Inscribir en actividades</button>
+
 </div>
 
 <script type="module">
@@ -50,10 +94,7 @@ import { supabase } from "../js/supabaseclientes.js";
    1. SESIÓN
 ============================================================ */
 const { data: { user } } = await supabase.auth.getUser();
-
-if (!user) {
-  location.href = "./login.html";
-}
+if (!user) location.href = "./login.html";
 
 /* ============================================================
    2. PERFIL
@@ -69,16 +110,38 @@ if (!profile || profile.role !== "familiar") {
   location.href = "./login.html";
 }
 
-/* ============================================================
-   3. AVATAR PERSISTENTE
-============================================================ */
+document.getElementById("profileEmail").textContent = user.email;
+document.getElementById("profileRole").textContent = "Rol: " + profile.role;
+
 if (profile.avatar_url) {
-  const icono = document.getElementById("profileToggle");
-  if (icono) icono.src = profile.avatar_url;
+  document.getElementById("profileToggle").src = profile.avatar_url;
 }
 
 /* ============================================================
-   4. NAVEGACIÓN UNIVERSAL
+   3. MENÚ PERFIL
+============================================================ */
+document.getElementById("profileToggle").onclick = () => {
+  const d = document.getElementById("profileDropdown");
+  d.style.display = d.style.display === "block" ? "none" : "block";
+};
+
+document.addEventListener("click", e => {
+  if (!e.target.closest(".profile-menu")) {
+    document.getElementById("profileDropdown").style.display = "none";
+  }
+});
+
+/* ============================================================
+   4. LOGOUT
+============================================================ */
+document.getElementById("logoutBtn").onclick = async () => {
+  await supabase.auth.signOut();
+  localStorage.removeItem("invitado");
+  location.href = "./login.html";
+};
+
+/* ============================================================
+   5. NAVEGACIÓN UNIVERSAL
 ============================================================ */
 document.getElementById("btnVolver").onclick = () => {
   location.href = "./mis-hijos.html";
@@ -91,100 +154,82 @@ document.getElementById("btnInicio").onclick = async () => {
 };
 
 /* ============================================================
-   5. BLOQUEAR RETROCESO
+   6. BLOQUEAR RETROCESO
 ============================================================ */
 history.pushState(null, null, location.href);
-window.onpopstate = function () {
-  history.go(1);
-};
-
-/* ============================================================
-   6. ID HIJO
-============================================================ */
-const params = new URLSearchParams(window.location.search);
-const id = params.get("id");
+window.onpopstate = () => history.go(1);
 
 /* ============================================================
    7. MODO EDICIÓN
 ============================================================ */
-if (id) {
+const params = new URLSearchParams(window.location.search);
+const hijo_id = params.get("id");
+
+if (hijo_id) {
   document.getElementById("titulo").textContent = "Editar hijo";
-  cargarHijo();
-}
+  document.getElementById("btnActividades").style.display = "inline-block";
 
-/* ============================================================
-   8. CARGAR HIJO
-============================================================ */
-async function cargarHijo() {
-
-  const { data: hijo, error } = await supabase
+  const { data: hijo } = await supabase
     .from("alumnos")
     .select("*")
-    .eq("id", id)
-    .eq("familiar_id", user.id)   // Seguridad extra
+    .eq("id", hijo_id)
     .maybeSingle();
 
-  if (error || !hijo) {
-    alert("Error cargando hijo");
+  if (!hijo || hijo.familiar_id !== user.id) {
+    alert("No tienes permiso para editar este hijo");
     location.href = "./mis-hijos.html";
-    return;
   }
 
-  document.getElementById("nombre").value = hijo.nombre || "";
-  document.getElementById("apellidos").value = hijo.apellidos || "";
+  document.getElementById("nombre").value = hijo.nombre;
+  document.getElementById("apellidos").value = hijo.apellidos;
   document.getElementById("curso").value = hijo.curso || "";
   document.getElementById("fecha_nacimiento").value = hijo.fecha_nacimiento || "";
 }
 
 /* ============================================================
-   9. GUARDAR
+   8. GUARDAR
 ============================================================ */
 document.getElementById("btnGuardar").onclick = async () => {
-
   const nombre = document.getElementById("nombre").value.trim();
   const apellidos = document.getElementById("apellidos").value.trim();
-  const curso = document.getElementById("curso").value.trim() || null;
-  const fecha_nacimiento = document.getElementById("fecha_nacimiento").value || null;
+  const curso = document.getElementById("curso").value.trim();
+  const fecha_nacimiento = document.getElementById("fecha_nacimiento").value;
 
   if (!nombre || !apellidos) {
     alert("Nombre y apellidos son obligatorios");
     return;
   }
 
-  const datos = {
-    nombre,
-    apellidos,
-    curso,
-    fecha_nacimiento,
-    familiar_id: user.id
-  };
-
-  let error;
-
-  if (id) {
-    const res = await supabase
+  if (hijo_id) {
+    const { error } = await supabase
       .from("alumnos")
-      .update(datos)
-      .eq("id", id)
-      .eq("familiar_id", user.id);
+      .update({ nombre, apellidos, curso, fecha_nacimiento })
+      .eq("id", hijo_id);
 
-    error = res.error;
-
+    if (error) return alert("Error actualizando hijo");
   } else {
-    const res = await supabase
+    const { error } = await supabase
       .from("alumnos")
-      .insert([datos]);
+      .insert({
+        familiar_id: user.id,
+        nombre,
+        apellidos,
+        curso,
+        fecha_nacimiento
+      });
 
-    error = res.error;
+    if (error) return alert("Error creando hijo");
   }
 
-  if (error) {
-    console.error(error);
-    alert("Error guardando hijo");
-    return;
-  }
-
+  alert("Guardado correctamente");
   location.href = "./mis-hijos.html";
+};
+
+/* ============================================================
+   9. INSCRIBIR EN ACTIVIDADES
+============================================================ */
+document.getElementById("btnActividades").onclick = () => {
+  location.href = "./mis-hijos-actividades.html?id=" + hijo_id;
 };
 </script>
 
