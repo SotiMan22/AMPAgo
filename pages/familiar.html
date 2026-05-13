@@ -57,23 +57,29 @@ if (!user) {
 }
 
 /* ============================================================
-   2. PERFIL
+   2. PERFIL — CORREGIDO PARA NO EXPULSAR SI TARDA EN CARGAR
 ============================================================ */
 const { data: profile, error } = await supabase
   .from("profiles")
-  .select("role, nombre, apellidos")
+  .select("role, nombre, apellidos, avatar_url")
   .eq("id", user.id)
   .maybeSingle();
 
-if (error || !profile) {
+console.log("DEBUG FAMILIAR:", profile, error);
+
+/* Si hay error grave, sí expulsamos */
+if (error) {
   alert("Error cargando perfil");
   location.href = "./login.html";
 }
 
 /* ============================================================
-   3. CONTROL DE ACCESO
+   3. CONTROL DE ACCESO — SOLO EXPULSA SI EL ROL ES INCORRECTO
 ============================================================ */
-if (profile.role !== "familiar") {
+const role = (profile?.role ?? "").trim().toLowerCase();
+
+/* Si el rol llega vacío, null o tarda → NO expulsamos */
+if (role && role !== "familiar") {
   alert("Acceso restringido a familiares");
   location.href = "./login.html";
 }
@@ -82,10 +88,15 @@ if (profile.role !== "familiar") {
    4. UI PERFIL + BIENVENIDA
 ============================================================ */
 document.getElementById("profileEmail").textContent = user.email || "";
-document.getElementById("profileRole").textContent = "Rol: " + profile.role;
+document.getElementById("profileRole").textContent = "Rol: familiar";
 
 document.getElementById("bienvenida").textContent =
-  `Bienvenido, ${profile.role} ${profile.nombre} ${profile.apellidos}`;
+  `Bienvenido, ${profile?.nombre ?? ""} ${profile?.apellidos ?? ""}`;
+
+/* Mostrar avatar si existe */
+if (profile?.avatar_url) {
+  document.getElementById("profileToggle").src = profile.avatar_url;
+}
 
 /* ============================================================
    5. MENÚ PERFIL
