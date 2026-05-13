@@ -84,15 +84,23 @@ if (!user) {
 }
 
 /* ============================================================
-   2. PERFIL
+   2. PERFIL — CORREGIDO PARA NO EXPULSAR SI TARDA
 ============================================================ */
-const { data: profile } = await supabase
+const { data: profile, error } = await supabase
   .from("profiles")
   .select("role, avatar_url")
   .eq("id", user.id)
   .maybeSingle();
 
-if (!profile || profile.role !== "monitor") {
+if (error) {
+  alert("Error cargando perfil");
+  location.href = "./login.html";
+}
+
+const role = (profile?.role ?? "").trim().toLowerCase();
+
+/* SOLO expulsar si el rol REAL es incorrecto */
+if (role && role !== "monitor") {
   alert("Solo los monitores pueden acceder");
   location.href = "./login.html";
 }
@@ -101,10 +109,10 @@ if (!profile || profile.role !== "monitor") {
    3. UI PERFIL
 ============================================================ */
 document.getElementById("profileEmail").textContent = user.email || "";
-document.getElementById("profileRole").textContent = "Rol: " + profile.role;
+document.getElementById("profileRole").textContent = "Rol: monitor";
 
 // Avatar persistente
-if (profile.avatar_url) {
+if (profile?.avatar_url) {
   document.getElementById("profileToggle").src = profile.avatar_url;
 }
 
