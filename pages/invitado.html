@@ -4,6 +4,20 @@
   <meta charset="UTF-8">
   <title>Invitado - AMPAgo</title>
   <link rel="stylesheet" href="../style.css">
+
+  <style>
+    .nav-container {
+      margin: 10px 0 20px 0;
+    }
+    .nav-btn {
+      background: #eee;
+      border: 1px solid #ccc;
+      padding: 6px 12px;
+      margin-right: 10px;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+  </style>
 </head>
 
 <body>
@@ -25,6 +39,12 @@
 
 <div class="container">
 
+  <!-- Navegación universal -->
+  <div class="nav-container">
+    <button id="btnVolver" class="nav-btn">Volver</button>
+    <button id="btnInicio" class="nav-btn">Inicio</button>
+  </div>
+
   <h2>Bienvenido</h2>
 
   <p>Puedes ver las actividades disponibles sin iniciar sesión.</p>
@@ -37,7 +57,7 @@
 
 <script>
 /* ============================================================
-   MENÚ PERFIL
+   1. MENÚ PERFIL
 ============================================================ */
 document.getElementById("profileToggle").onclick = () => {
   const d = document.getElementById("profileDropdown");
@@ -51,7 +71,26 @@ document.addEventListener("click", (e) => {
 });
 
 /* ============================================================
-   IR A LOGIN
+   2. NAVEGACIÓN UNIVERSAL
+============================================================ */
+document.getElementById("btnVolver").onclick = () => {
+  location.href = "./login.html";
+};
+
+document.getElementById("btnInicio").onclick = () => {
+  location.href = "./login.html";
+};
+
+/* ============================================================
+   3. BLOQUEAR RETROCESO
+============================================================ */
+history.pushState(null, null, location.href);
+window.onpopstate = function () {
+  history.go(1);
+};
+
+/* ============================================================
+   4. IR A LOGIN
 ============================================================ */
 document.getElementById("btnLogin").onclick = () => {
   localStorage.removeItem("invitado");
@@ -59,7 +98,7 @@ document.getElementById("btnLogin").onclick = () => {
 };
 
 /* ============================================================
-   ENTRAR COMO INVITADO
+   5. ENTRAR COMO INVITADO
 ============================================================ */
 document.getElementById("btnActividades").onclick = () => {
   localStorage.setItem("invitado", "true");
