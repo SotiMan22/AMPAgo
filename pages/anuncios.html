@@ -34,6 +34,7 @@
       border-radius: 6px;
       cursor: pointer;
       margin-bottom: 20px;
+      display: none;
     }
   </style>
 </head>
@@ -52,7 +53,7 @@
 
   <h2>Anuncios</h2>
 
-  <button id="btnCrear" style="display:none;">Crear anuncio</button>
+  <button id="btnCrear">Crear anuncio</button>
 
   <div id="listaAnuncios">Cargando anuncios...</div>
 
@@ -61,7 +62,9 @@
 <script type="module">
 import { supabase } from "../js/supabaseclientes.js";
 
-/* ================= SESIÓN ================= */
+/* ============================================================
+   1. SESIÓN
+============================================================ */
 const esInvitado = localStorage.getItem("invitado") === "true";
 const { data: { user } } = await supabase.auth.getUser();
 
@@ -69,37 +72,55 @@ if (!user && !esInvitado) {
   location.href = "./login.html";
 }
 
-/* ================= BOTÓN VOLVER (CORREGIDO) ================= */
-/* NO USA ROL, NO USA SUPABASE, NO EXPULSA */
+/* ============================================================
+   2. ROL REAL DEL USUARIO (NO EXPULSAR SI TARDA)
+============================================================ */
+let role = null;
+
+if (!esInvitado) {
+  const { data: profile, error } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (!error) {
+    role = (profile?.role ?? "").trim().toLowerCase();
+  }
+}
+
+/* ============================================================
+   3. MOSTRAR BOTÓN CREAR SOLO A ADMIN Y MONITOR
+============================================================ */
+if (role === "admin" || role === "monitor") {
+  document.getElementById("btnCrear").style.display = "inline-block";
+}
+
+/* ============================================================
+   4. BOTÓN VOLVER INTELIGENTE (SEGÚN ORIGEN)
+============================================================ */
+const params = new URLSearchParams(window.location.search);
+const rolEntrada = params.get("rol");
+
 document.getElementById("btnVolver").onclick = () => {
-  location.href = "./familiar.html";
+  if (rolEntrada === "monitor") location.href = "./monitor.html";
+  else if (rolEntrada === "admin") location.href = "./admin.html";
+  else if (rolEntrada === "invitado") location.href = "./invitado.html";
+  else location.href = "./familiar.html";
 };
 
-/* ================= INICIO (CERRAR SESIÓN) ================= */
+/* ============================================================
+   5. BOTÓN INICIO (LOGOUT)
+============================================================ */
 document.getElementById("btnInicio").onclick = async () => {
   await supabase.auth.signOut();
   localStorage.removeItem("invitado");
   location.href = "./login.html";
 };
 
-/* ================= PERMISOS ================= */
-let role = null;
-
-if (!esInvitado) {
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .maybeSingle();
-
-  role = profile?.role;
-
-  if (["admin", "monitor"].includes(role)) {
-    document.getElementById("btnCrear").style.display = "inline-block";
-  }
-}
-
-/* ================= CARGAR ANUNCIOS ================= */
+/* ============================================================
+   6. CARGAR ANUNCIOS
+============================================================ */
 async function cargarAnuncios() {
   const { data, error } = await supabase
     .from("anuncios")
@@ -129,12 +150,16 @@ async function cargarAnuncios() {
 
 cargarAnuncios();
 
-/* ================= BOTÓN CREAR ================= */
+/* ============================================================
+   7. CREAR ANUNCIO
+============================================================ */
 document.getElementById("btnCrear").onclick = () => {
-  location.href = "./anuncios-form.html";
+  location.href = "./anuncios-form.html?rol=" + rolEntrada;
 };
 
-/* ================= BLOQUEAR RETROCESO ================= */
+/* ============================================================
+   8. BLOQUEAR RETROCESO
+============================================================ */
 history.pushState(null, null, location.href);
 window.onpopstate = function () {
   history.go(1);
