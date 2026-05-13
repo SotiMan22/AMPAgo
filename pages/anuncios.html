@@ -6,35 +6,21 @@
   <link rel="stylesheet" href="../style.css">
 
   <style>
-    .nav-container {
-      margin: 10px 0 20px 0;
-    }
+    .nav-container { margin: 10px 0 20px 0; }
     .nav-btn {
-      background: #eee;
-      border: 1px solid #ccc;
-      padding: 6px 12px;
-      margin-right: 10px;
-      cursor: pointer;
-      border-radius: 4px;
+      background: #eee; border: 1px solid #ccc;
+      padding: 6px 12px; margin-right: 10px;
+      cursor: pointer; border-radius: 4px;
     }
-
     .anuncio {
-      background: white;
-      padding: 15px;
-      margin-bottom: 15px;
-      border-radius: 6px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      background: white; padding: 15px; margin-bottom: 15px;
+      border-radius: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     }
-
     #btnCrear {
-      background-color: #c62828;
-      color: white;
-      border: none;
-      padding: 10px 15px;
-      border-radius: 6px;
-      cursor: pointer;
-      margin-bottom: 20px;
-      display: none;
+      background-color: #c62828; color: white;
+      border: none; padding: 10px 15px;
+      border-radius: 6px; cursor: pointer;
+      margin-bottom: 20px; display: none;
     }
   </style>
 </head>
@@ -45,7 +31,6 @@
 
 <div class="container">
 
-  <!-- Navegación universal -->
   <div class="nav-container">
     <button id="btnVolver" class="nav-btn">Volver</button>
     <button id="btnInicio" class="nav-btn">Inicio</button>
@@ -62,70 +47,64 @@
 <script type="module">
 import { supabase } from "../js/supabaseclientes.js";
 
-/* ============================================================
+/* ============================
    1. SESIÓN
-============================================================ */
+============================ */
 const esInvitado = localStorage.getItem("invitado") === "true";
 const { data: { user } } = await supabase.auth.getUser();
 
-/* Invitado NO puede entrar al tablón */
 if (esInvitado) {
   alert("Los invitados no pueden acceder al tablón");
   location.href = "./invitado.html";
   return;
 }
 
-/* Si no hay usuario → login */
-if (!user) {
-  location.href = "./login.html";
-}
+if (!user) location.href = "./login.html";
 
-/* ============================================================
-   2. ROL REAL DEL USUARIO (NO EXPULSAR SI TARDA)
-============================================================ */
+/* ============================
+   2. ROL REAL
+============================ */
 let role = null;
 
-const { data: profile, error } = await supabase
+const { data: profile } = await supabase
   .from("profiles")
   .select("role")
   .eq("id", user.id)
   .maybeSingle();
 
-if (!error) {
-  role = (profile?.role ?? "").trim().toLowerCase();
-}
+role = (profile?.role ?? "").trim().toLowerCase();
 
-/* ============================================================
-   3. MOSTRAR BOTÓN CREAR SOLO A ADMIN Y MONITOR
-============================================================ */
+/* ============================
+   3. BOTÓN CREAR
+============================ */
 if (role === "admin" || role === "monitor") {
   document.getElementById("btnCrear").style.display = "inline-block";
 }
 
-/* ============================================================
-   4. BOTÓN VOLVER SEGÚN ORIGEN
-============================================================ */
+/* ============================
+   4. BOTÓN VOLVER
+============================ */
 const params = new URLSearchParams(window.location.search);
-const rolEntrada = params.get("rol");
+const origen = params.get("rol");
 
 document.getElementById("btnVolver").onclick = () => {
-  if (rolEntrada === "monitor") location.href = "./monitor.html";
-  else if (rolEntrada === "admin") location.href = "./admin.html";
+  if (origen === "monitor") location.href = "./monitor.html";
+  else if (origen === "admin") location.href = "./admin.html";
   else location.href = "./familiar.html";
 };
 
-/* ============================================================
-   5. BOTÓN INICIO (LOGOUT)
-============================================================ */
+/* ============================
+   5. INICIO (LOGOUT)
+============================ */
 document.getElementById("btnInicio").onclick = async () => {
   await supabase.auth.signOut();
   localStorage.removeItem("invitado");
   location.href = "./login.html";
 };
 
-/* ============================================================
+/* ============================
    6. CARGAR ANUNCIOS
-============================================================ */
+============================ */
 async function cargarAnuncios() {
   const { data, error } = await supabase
     .from("anuncios")
@@ -155,20 +134,18 @@ async function cargarAnuncios() {
 
 cargarAnuncios();
 
-/* ============================================================
+/* ============================
    7. CREAR ANUNCIO
-============================================================ */
+============================ */
 document.getElementById("btnCrear").onclick = () => {
-  location.href = "./anuncios-form.html?rol=" + rolEntrada;
+  location.href = "./anuncios-form.html?rol=" + origen;
 };
 
-/* ============================================================
+/* ============================
    8. BLOQUEAR RETROCESO
-============================================================ */
+============================ */
 history.pushState(null, null, location.href);
-window.onpopstate = function () {
-  history.go(1);
-};
+window.onpopstate = () => history.go(1);
 </script>
 
 </body>
