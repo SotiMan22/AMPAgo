@@ -4,6 +4,20 @@
   <meta charset="UTF-8">
   <title>Hijo - AMPAgo</title>
   <link rel="stylesheet" href="../style.css">
+
+  <style>
+    .nav-container {
+      margin: 10px 0 20px 0;
+    }
+    .nav-btn {
+      background: #eee;
+      border: 1px solid #ccc;
+      padding: 6px 12px;
+      margin-right: 10px;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+  </style>
 </head>
 
 <body>
@@ -11,6 +25,12 @@
 <header>Hijo</header>
 
 <div class="container">
+
+  <!-- Navegación universal -->
+  <div class="nav-container">
+    <button id="btnVolver" class="nav-btn">Volver</button>
+    <button id="btnInicio" class="nav-btn">Inicio</button>
+  </div>
 
   <h2 id="titulo">Añadir hijo</h2>
 
@@ -20,7 +40,6 @@
   <input id="fecha_nacimiento" type="date">
 
   <button id="btnGuardar">Guardar</button>
-  <button onclick="location.href='./mis-hijos.html'">Volver</button>
 
 </div>
 
@@ -41,7 +60,7 @@ if (!user) {
 ============================================================ */
 const { data: profile } = await supabase
   .from("profiles")
-  .select("role")
+  .select("role, avatar_url")
   .eq("id", user.id)
   .maybeSingle();
 
@@ -51,13 +70,42 @@ if (!profile || profile.role !== "familiar") {
 }
 
 /* ============================================================
-   3. ID HIJO
+   3. AVATAR PERSISTENTE
+============================================================ */
+if (profile.avatar_url) {
+  const icono = document.getElementById("profileToggle");
+  if (icono) icono.src = profile.avatar_url;
+}
+
+/* ============================================================
+   4. NAVEGACIÓN UNIVERSAL
+============================================================ */
+document.getElementById("btnVolver").onclick = () => {
+  location.href = "./mis-hijos.html";
+};
+
+document.getElementById("btnInicio").onclick = async () => {
+  await supabase.auth.signOut();
+  localStorage.removeItem("invitado");
+  location.href = "./login.html";
+};
+
+/* ============================================================
+   5. BLOQUEAR RETROCESO
+============================================================ */
+history.pushState(null, null, location.href);
+window.onpopstate = function () {
+  history.go(1);
+};
+
+/* ============================================================
+   6. ID HIJO
 ============================================================ */
 const params = new URLSearchParams(window.location.search);
 const id = params.get("id");
 
 /* ============================================================
-   4. MODO EDICIÓN
+   7. MODO EDICIÓN
 ============================================================ */
 if (id) {
   document.getElementById("titulo").textContent = "Editar hijo";
@@ -65,7 +113,7 @@ if (id) {
 }
 
 /* ============================================================
-   5. CARGAR HIJO
+   8. CARGAR HIJO
 ============================================================ */
 async function cargarHijo() {
 
@@ -89,7 +137,7 @@ async function cargarHijo() {
 }
 
 /* ============================================================
-   6. GUARDAR
+   9. GUARDAR
 ============================================================ */
 document.getElementById("btnGuardar").onclick = async () => {
 
@@ -118,7 +166,7 @@ document.getElementById("btnGuardar").onclick = async () => {
       .from("alumnos")
       .update(datos)
       .eq("id", id)
-      .eq("familiar_id", user.id); // Seguridad
+      .eq("familiar_id", user.id);
 
     error = res.error;
 
