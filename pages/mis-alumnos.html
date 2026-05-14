@@ -38,7 +38,7 @@
 <header>
   Mis alumnos
 
-  <div class="profile-menu">
+  <div class="profile-menu" id="profileMenu">
     <img src="../img/user.png" class="profile-icon" id="profileToggle">
 
     <div class="profile-dropdown" id="profileDropdown">
@@ -67,32 +67,39 @@
 import { supabase } from "../js/supabaseclientes.js";
 
 /* ============================================================
-   1. SESIÓN
+   1. SESIÓN + INVITADO
 ============================================================ */
+const esInvitado = localStorage.getItem("invitado") === "true";
 const { data: { user } } = await supabase.auth.getUser();
 
-if (!user) {
+if (!user && !esInvitado) {
   location.href = "./login.html";
 }
 
 /* ============================================================
-   2. PERFIL
+   2. PERFIL (solo si NO es invitado)
 ============================================================ */
-const { data: profile } = await supabase
-  .from("profiles")
-  .select("role, avatar_url")
-  .eq("id", user.id)
-  .maybeSingle();
+let profile = null;
 
-if (!profile) {
-  alert("No se pudo cargar el perfil");
-  location.href = "./login.html";
+if (!esInvitado) {
+  const { data } = await supabase
+    .from("profiles")
+    .select("role, avatar_url")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  profile = data;
+
+  if (!profile) {
+    alert("No se pudo cargar el perfil");
+    location.href = "./login.html";
+  }
 }
 
 /* ============================================================
    3. CONTROL DE ACCESO
 ============================================================ */
-if (profile.role !== "monitor") {
+if (!esInvitado && profile.role !== "monitor") {
   alert("Solo los monitores pueden acceder");
   location.href = "./login.html";
 }
@@ -100,11 +107,15 @@ if (profile.role !== "monitor") {
 /* ============================================================
    4. UI PERFIL
 ============================================================ */
-document.getElementById("profileEmail").textContent = user.email || "";
-document.getElementById("profileRole").textContent = "Rol: " + profile.role;
+if (!esInvitado) {
+  document.getElementById("profileEmail").textContent = user.email || "";
+  document.getElementById("profileRole").textContent = "Rol: " + profile.role;
 
-if (profile.avatar_url) {
-  document.getElementById("profileToggle").src = profile.avatar_url;
+  if (profile.avatar_url) {
+    document.getElementById("profileToggle").src = profile.avatar_url;
+  }
+} else {
+  document.getElementById("profileMenu").style.display = "none";
 }
 
 /* ============================================================
@@ -140,6 +151,7 @@ document.getElementById("btnVolver").onclick = () => {
 document.getElementById("btnInicio").onclick = async () => {
   await supabase.auth.signOut();
   localStorage.removeItem("invitado");
+  sessionStorage.removeItem("invitado");
   location.href = "./login.html";
 };
 
@@ -163,20 +175,22 @@ if (!actividad_id) {
 }
 
 /* ============================================================
-   10. VERIFICAR ACTIVIDAD
+   10. VERIFICAR ACTIVIDAD (solo si NO es invitado)
 ============================================================ */
-const { data: actividad } = await supabase
-  .from("actividades")
-  .select("id, nombre, monitor_id")
-  .eq("id", actividad_id)
-  .maybeSingle();
+if (!esInvitado) {
+  const { data: actividad } = await supabase
+    .from("actividades")
+    .select("id, nombre, monitor_id")
+    .eq("id", actividad_id)
+    .maybeSingle();
 
-if (!actividad || actividad.monitor_id !== user.id) {
-  alert("No tienes permiso para ver esta actividad");
-  location.href = "./mis-actividades.html";
+  if (!actividad || actividad.monitor_id !== user.id) {
+    alert("No tienes permiso para ver esta actividad");
+    location.href = "./mis-actividades.html";
+  }
+
+  document.getElementById("titulo").textContent = actividad.nombre;
 }
-
-document.getElementById("titulo").textContent = actividad.nombre;
 
 /* ============================================================
    11. CARGAR ALUMNOS
