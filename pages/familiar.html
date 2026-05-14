@@ -12,7 +12,7 @@
   Panel Familiar
 
   <div class="profile-menu">
-    <img src="../img/familiar.png" class="profile-icon" id="profileToggle">
+    <img src="../img/user.png" class="profile-icon" id="profileToggle">
 
     <div class="profile-dropdown" id="profileDropdown">
       <p id="profileEmail"></p>
@@ -58,7 +58,7 @@ const { data: { user } } = await supabase.auth.getUser();
 if (!user) location.href = "./login.html";
 
 /* ============================================================
-   PERFIL — AHORA INCLUYE avatar_url
+   PERFIL — INCLUYE avatar_url
 ============================================================ */
 const { data: profile, error } = await supabase
   .from("profiles")
@@ -66,20 +66,20 @@ const { data: profile, error } = await supabase
   .eq("id", user.id)
   .maybeSingle();
 
-console.log("DEBUG PERFIL:", profile, error);
-
-/* Error real → expulsar */
 if (error) {
   alert("No se pudo cargar el perfil");
   location.href = "./login.html";
 }
 
 /* ============================================================
-   CONTROL DE ACCESO
+   CONTROL DE ACCESO — AHORA CORRECTO
 ============================================================ */
 const role = (profile?.role ?? "").trim().toLowerCase();
 
-if (role && role !== "familiar") {
+// Si Supabase tarda → NO expulsar
+if (!role) {
+  console.log("Esperando rol...");
+} else if (role !== "familiar") {
   alert("Acceso restringido a familiares");
   location.href = "./login.html";
 }
@@ -90,7 +90,6 @@ if (role && role !== "familiar") {
 document.getElementById("profileEmail").textContent = user.email || "";
 document.getElementById("profileRole").textContent = "Rol: familiar";
 
-/* FOTO DE PERFIL */
 if (profile?.avatar_url) {
   document.getElementById("profileToggle").src = profile.avatar_url;
 } else {
