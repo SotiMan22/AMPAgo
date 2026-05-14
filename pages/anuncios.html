@@ -91,11 +91,7 @@ async function navegar() {
 }
 
 document.getElementById("btnVolver").onclick = navegar;
-
-/* BOTÓN INICIO -> LOGIN */
-document.getElementById("btnInicio").onclick = () => {
-  location.href = "./login.html";
-};
+document.getElementById("btnInicio").onclick = navegar;
 
 /* ================= SESIÓN ================= */
 const { data: { user } } = await supabase.auth.getUser();
