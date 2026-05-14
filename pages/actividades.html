@@ -4,6 +4,16 @@
   <meta charset="UTF-8">
   <title>Actividades - Admin/Monitor</title>
   <link rel="stylesheet" href="../style.css">
+
+  <style>
+    .fila-seleccionada {
+      background-color: #ffe08a !important;
+    }
+    .boton-desactivado {
+      opacity: 0.5;
+      pointer-events: none;
+    }
+  </style>
 </head>
 
 <body>
@@ -24,14 +34,14 @@
 
 <div class="container">
 
-  <!-- Botón crear solo para admin -->
-  <div id="adminControls" style="display:none;">
-    <button onclick="location.href='./crear-actividad.html'">Crear actividad</button>
-  </div>
+  <!-- BOTONES SUPERIORES -->
+  <button onclick="location.href='./admin.html'">Volver</button>
+  <button id="btnCrear">Crear actividad</button>
+  <button onclick="location.href='./login.html'">Inicio</button>
 
   <h2>Actividades</h2>
 
-  <table>
+  <table id="tabla">
     <thead>
       <tr>
         <th>Nombre</th>
@@ -41,44 +51,52 @@
         <th>Monitor</th>
         <th>Material</th>
         <th>Zona</th>
-        <th id="accionesHeader" style="display:none;">Acciones</th>
       </tr>
     </thead>
     <tbody id="lista"></tbody>
   </table>
+
+  <br>
+
+  <!-- BOTONES DE ACCIÓN -->
+  <button id="btnModificar" class="boton-desactivado">Modificar</button>
+  <button id="btnEliminar" class="boton-desactivado">Eliminar</button>
 
 </div>
 
 <script type="module">
 import { supabase } from "../js/supabaseclientes.js";
 
-/* SESIÓN */
+let actividadSeleccionada = null;
+
+/* ============================================================
+   SESIÓN
+============================================================ */
 const { data: { user } } = await supabase.auth.getUser();
 if (!user) location.href = "./login.html";
 
-/* PERFIL */
+/* ============================================================
+   PERFIL
+============================================================ */
 const { data: profile } = await supabase
   .from("profiles")
   .select("role")
   .eq("id", user.id)
   .maybeSingle();
 
-if (!profile) {
-  alert("Error cargando perfil");
+if (!profile || (profile.role !== "admin" && profile.role !== "monitor")) {
+  alert("Acceso restringido");
   location.href = "./login.html";
 }
 
 const role = profile.role;
 
-if (role !== "admin" && role !== "monitor") {
-  alert("Acceso restringido");
-  location.href = "./login.html";
-}
-
 document.getElementById("profileEmail").textContent = user.email;
 document.getElementById("profileRole").textContent = "Rol: " + role;
 
-/* CARGAR ACTIVIDADES */
+/* ============================================================
+   CARGAR ACTIVIDADES
+============================================================ */
 async function cargar() {
   let query = supabase.from("actividades").select("*");
 
@@ -89,9 +107,12 @@ async function cargar() {
   const { data } = await query;
 
   const cont = document.getElementById("lista");
+  cont.innerHTML = "";
 
-  cont.innerHTML = data.map(a => `
-    <tr>
+  data.forEach(a => {
+    const tr = document.createElement("tr");
+
+    tr.innerHTML = `
       <td>${a.nombre}</td>
       <td>${a.dia1}</td>
       <td>${a.dia2}</td>
@@ -99,35 +120,71 @@ async function cargar() {
       <td>${a.monitor_id}</td>
       <td>${a.material_id}</td>
       <td>${a.zona_id}</td>
+    `;
 
-      ${
-        role === "admin"
-        ? `<td>
-             <button onclick="location.href='./modificar-actividad.html?id=${a.id}'">Modificar</button>
-             <button onclick="eliminar(${a.id})">Eliminar</button>
-           </td>`
-        : ""
-      }
-    </tr>
-  `).join("");
+    tr.onclick = () => seleccionarFila(tr, a.id);
 
-  if (role === "admin") {
-    document.getElementById("adminControls").style.display = "block";
-    document.getElementById("accionesHeader").style.display = "table-cell";
-  }
+    cont.appendChild(tr);
+  });
 }
 
 cargar();
 
-/* ELIMINAR */
-async function eliminar(id) {
-  if (!confirm("¿Eliminar actividad?")) return;
+/* ============================================================
+   SELECCIONAR FILA
+============================================================ */
+function seleccionarFila(fila, id) {
+  document.querySelectorAll("#lista tr").forEach(tr => tr.classList.remove("fila-seleccionada"));
 
-  await supabase.from("actividades").delete().eq("id", id);
-  cargar();
+  fila.classList.add("fila-seleccionada");
+  actividadSeleccionada = id;
+
+  document.getElementById("btnModificar").classList.remove("boton-desactivado");
+  document.getElementById("btnEliminar").classList.remove("boton-desactivado");
 }
 
-/* LOGOUT */
+/* ============================================================
+   MODIFICAR
+============================================================ */
+document.getElementById("btnModificar").onclick = () => {
+  if (!actividadSeleccionada) return;
+  location.href = `./modificar-actividad.html?id=${actividadSeleccionada}`;
+};
+
+/* ============================================================
+   ELIMINAR
+============================================================ */
+document.getElementById("btnEliminar").onclick = async () => {
+  if (!actividadSeleccionada) return;
+
+  const seguro = confirm("¿Seguro que quieres eliminar esta actividad?");
+  if (!seguro) return;
+
+  await supabase.from("actividades").delete().eq("id", actividadSeleccionada);
+
+  alert("Actividad eliminada");
+  actividadSeleccionada = null;
+
+  document.getElementById("btnModificar").classList.add("boton-desactivado");
+  document.getElementById("btnEliminar").classList.add("boton-desactivado");
+
+  cargar();
+};
+
+/* ============================================================
+   CREAR
+============================================================ */
+document.getElementById("btnCrear").onclick = () => {
+  if (role !== "admin") {
+    alert("Solo el administrador puede crear actividades");
+    return;
+  }
+  location.href = "./crear-actividad.html";
+};
+
+/* ============================================================
+   LOGOUT
+============================================================ */
 document.getElementById("logoutBtn").onclick = async () => {
   await supabase.auth.signOut();
   location.href = "./login.html";
