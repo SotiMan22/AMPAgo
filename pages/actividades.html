@@ -2,55 +2,38 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Actividades - AMPAgo</title>
+  <title>Actividades - Admin/Monitor</title>
   <link rel="stylesheet" href="../style.css">
-
-  <style>
-    .seleccionada {
-      background-color: #d0ebff !important;
-    }
-    #tablaActividades tr {
-      cursor: pointer;
-    }
-    .nav-container {
-      margin: 10px 0 20px 0;
-    }
-    .nav-btn {
-      background: #eee;
-      border: 1px solid #ccc;
-      padding: 6px 12px;
-      margin-right: 10px;
-      cursor: pointer;
-      border-radius: 4px;
-    }
-  </style>
 </head>
 
 <body>
 
-<header>Actividades</header>
+<header>
+  Actividades
+
+  <div class="profile-menu">
+    <img src="../img/user.png" class="profile-icon" id="profileToggle">
+
+    <div class="profile-dropdown" id="profileDropdown">
+      <p id="profileEmail"></p>
+      <p id="profileRole"></p>
+      <button id="logoutBtn">Cerrar sesión</button>
+    </div>
+  </div>
+</header>
 
 <div class="container">
 
-  <div class="nav-container">
-    <button id="btnVolver" class="nav-btn">Volver</button>
-    <button id="btnInicio" class="nav-btn">Inicio</button>
+  <!-- Botón crear solo para admin -->
+  <div id="adminControls" style="display:none;">
+    <button onclick="location.href='./crear-actividad.html'">Crear actividad</button>
   </div>
 
-  <h2>Lista de actividades</h2>
+  <h2>Actividades</h2>
 
-  <input id="buscador" type="text" placeholder="Buscar actividad...">
-
-  <div id="adminControls" style="display:none; margin-top:10px;">
-    <button id="btnCrear">Crear actividad</button>
-    <button id="btnModificar" disabled>Modificar</button>
-    <button id="btnEliminar" disabled>Eliminar</button>
-  </div>
-
-  <table id="tablaActividades">
+  <table>
     <thead>
       <tr>
-        <th></th>
         <th>Nombre</th>
         <th>Día 1</th>
         <th>Día 2</th>
@@ -58,232 +41,97 @@
         <th>Monitor</th>
         <th>Material</th>
         <th>Zona</th>
+        <th id="accionesHeader" style="display:none;">Acciones</th>
       </tr>
     </thead>
-    <tbody id="tbodyActividades">
-      <tr><td colspan="8">Cargando actividades...</td></tr>
-    </tbody>
+    <tbody id="lista"></tbody>
   </table>
 
-</div>
-
-<!-- MODAL -->
-<div id="modalEliminar" class="modal" style="display:none;">
-  <div class="modal-content">
-    <h3>Confirmar eliminación</h3>
-    <button id="confirmarEliminar">Sí, eliminar</button>
-    <button id="cancelarEliminar">Cancelar</button>
-  </div>
 </div>
 
 <script type="module">
 import { supabase } from "../js/supabaseclientes.js";
 
-let actividades = [];
-let seleccionada = null;
-
-/* ================= SESIÓN ================= */
-const esInvitado = localStorage.getItem("invitado") === "true";
+/* SESIÓN */
 const { data: { user } } = await supabase.auth.getUser();
+if (!user) location.href = "./login.html";
 
-if (!user && !esInvitado) {
+/* PERFIL */
+const { data: profile } = await supabase
+  .from("profiles")
+  .select("role")
+  .eq("id", user.id)
+  .maybeSingle();
+
+if (!profile) {
+  alert("Error cargando perfil");
   location.href = "./login.html";
 }
 
-/* ================= PERFIL Y ROL ================= */
-let role = "invitado";
-let avatar = null;
+const role = profile.role;
 
-if (!esInvitado && user) {
-  const { data: perfil } = await supabase
-    .from("profiles")
-    .select("role, avatar_url")
-    .eq("id", user.id)
-    .maybeSingle();
-
-  role = (perfil?.role ?? "").trim().toLowerCase();
-  avatar = perfil?.avatar_url ?? null;
+if (role !== "admin" && role !== "monitor") {
+  alert("Acceso restringido");
+  location.href = "./login.html";
 }
 
-/* BOTÓN VOLVER — SEGÚN ROL REAL */
-document.getElementById("btnVolver").onclick = async () => {
+document.getElementById("profileEmail").textContent = user.email;
+document.getElementById("profileRole").textContent = "Rol: " + role;
 
-  const esInvitado = localStorage.getItem("invitado") === "true";
-  if (esInvitado) {
-    location.href = "./invitado.html";
-    return;
+/* CARGAR ACTIVIDADES */
+async function cargar() {
+  let query = supabase.from("actividades").select("*");
+
+  if (role === "monitor") {
+    query = query.eq("monitor_id", user.id);
   }
 
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
-    location.href = "./login.html";
-    return;
-  }
+  const { data } = await query;
 
-  const { data: perfil } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .maybeSingle();
+  const cont = document.getElementById("lista");
 
-  const role = (perfil?.role ?? "").trim().toLowerCase();
+  cont.innerHTML = data.map(a => `
+    <tr>
+      <td>${a.nombre}</td>
+      <td>${a.dia1}</td>
+      <td>${a.dia2}</td>
+      <td>${a.descripcion}</td>
+      <td>${a.monitor_id}</td>
+      <td>${a.material_id}</td>
+      <td>${a.zona_id}</td>
 
-  if (role === "familiar") location.href = "./familiar.html";
-  else if (role === "monitor") location.href = "./monitor.html";
-  else if (role === "admin") location.href = "./admin.html";
-  else location.href = "./login.html";
-};
+      ${
+        role === "admin"
+        ? `<td>
+             <button onclick="location.href='./modificar-actividad.html?id=${a.id}'">Modificar</button>
+             <button onclick="eliminar(${a.id})">Eliminar</button>
+           </td>`
+        : ""
+      }
+    </tr>
+  `).join("");
 
-
-
-/* ================= PERMISOS ================= */
-let puedeGestionar = role === "admin" || role === "monitor";
-
-if (puedeGestionar) {
-  document.getElementById("adminControls").style.display = "block";
-}
-
-/* ================= CARGAR ACTIVIDADES ================= */
-async function cargarActividades() {
-  const { data, error } = await supabase
-    .from("actividades")
-    .select("*")
-    .order("nombre");
-
-  if (error) {
-    document.getElementById("tbodyActividades").innerHTML =
-      `<tr><td colspan="8">Error cargando actividades</td></tr>`;
-    return;
-  }
-
-  actividades = data || [];
-  pintarTabla(actividades);
-}
-
-/* ================= TABLA ================= */
-async function pintarTabla(lista) {
-  const tbody = document.getElementById("tbodyActividades");
-
-  if (!lista.length) {
-    tbody.innerHTML = `<tr><td colspan="8">No hay actividades</td></tr>`;
-    return;
-  }
-
-  let html = "";
-
-  for (const a of lista) {
-
-    let nombreMaterial = "Sin material";
-    if (a.material_id) {
-      const { data } = await supabase.from("materiales").select("nombre").eq("id", a.material_id).maybeSingle();
-      if (data) nombreMaterial = data.nombre;
-    }
-
-    let nombreZona = "Sin zona";
-    if (a.zona_id) {
-      const { data } = await supabase.from("zonas").select("nombre").eq("id", a.zona_id).maybeSingle();
-      if (data) nombreZona = data.nombre;
-    }
-
-    let nombreMonitor = "Sin monitor";
-    if (a.monitor_id) {
-      const { data } = await supabase.from("monitores").select("nombre, apellidos").eq("id", a.monitor_id).maybeSingle();
-      if (data) nombreMonitor = `${data.nombre} ${data.apellidos || ""}`.trim();
-    }
-
-    html += `
-      <tr data-id="${a.id}">
-        <td></td>
-        <td>${a.nombre}</td>
-        <td>${a.dia1 || ""}</td>
-        <td>${a.dia2 || ""}</td>
-        <td>${a.descripcion || ""}</td>
-        <td>${nombreMonitor}</td>
-        <td>${nombreMaterial}</td>
-        <td>${nombreZona}</td>
-      </tr>
-    `;
-  }
-
-  tbody.innerHTML = html;
-
-  document.querySelectorAll("#tablaActividades tbody tr")
-    .forEach(tr => tr.onclick = () => seleccionarFila(tr));
-}
-
-/* ================= SELECCIÓN ================= */
-function seleccionarFila(tr) {
-  document.querySelectorAll("#tablaActividades tr")
-    .forEach(r => r.classList.remove("seleccionada"));
-
-  tr.classList.add("seleccionada");
-  seleccionada = tr.dataset.id;
-
-  if (puedeGestionar) {
-    document.getElementById("btnModificar").disabled = false;
-    document.getElementById("btnEliminar").disabled = false;
+  if (role === "admin") {
+    document.getElementById("adminControls").style.display = "block";
+    document.getElementById("accionesHeader").style.display = "table-cell";
   }
 }
 
-/* ================= BUSCADOR ================= */
-document.getElementById("buscador").oninput = (e) => {
-  const texto = e.target.value.toLowerCase();
+cargar();
 
-  const filtradas = actividades.filter(a =>
-    (a.nombre || "").toLowerCase().includes(texto) ||
-    (a.descripcion || "").toLowerCase().includes(texto)
-  );
+/* ELIMINAR */
+async function eliminar(id) {
+  if (!confirm("¿Eliminar actividad?")) return;
 
-  pintarTabla(filtradas);
+  await supabase.from("actividades").delete().eq("id", id);
+  cargar();
+}
+
+/* LOGOUT */
+document.getElementById("logoutBtn").onclick = async () => {
+  await supabase.auth.signOut();
+  location.href = "./login.html";
 };
-
-/* ================= CRUD ================= */
-document.getElementById("btnCrear").onclick = () => {
-  location.href = "./actividades-form.html";
-};
-
-document.getElementById("btnModificar").onclick = () => {
-  if (seleccionada) {
-    location.href = `./actividades-form.html?id=${seleccionada}`;
-  }
-};
-
-document.getElementById("btnEliminar").onclick = () => {
-  document.getElementById("modalEliminar").style.display = "block";
-};
-
-document.getElementById("cancelarEliminar").onclick = () => {
-  document.getElementById("modalEliminar").style.display = "none";
-};
-
-document.getElementById("confirmarEliminar").onclick = async () => {
-  const { error } = await supabase
-    .from("actividades")
-    .delete()
-    .eq("id", seleccionada);
-
-  if (error) {
-    alert("Error eliminando actividad");
-    return;
-  }
-
-  document.getElementById("modalEliminar").style.display = "none";
-  seleccionada = null;
-
-  document.getElementById("btnModificar").disabled = true;
-  document.getElementById("btnEliminar").disabled = true;
-
-  await cargarActividades();
-};
-
-/* ================= BLOQUEAR RETROCESO ================= */
-history.pushState(null, null, location.href);
-window.onpopstate = function () {
-  history.go(1);
-};
-
-/* ================= INIT ================= */
-cargarActividades();
 </script>
 
 </body>
