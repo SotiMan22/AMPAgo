@@ -115,46 +115,15 @@ document.getElementById("logoutBtn").onclick = async () => {
 };
 
 /* ============================================================
-   6. ACTIVIDADES DEL MONITOR — AUTODETECCIÓN DE COLUMNA
+   6. ACTIVIDADES DEL MONITOR — COLUMNA CORRECTA
 ============================================================ */
 async function cargarActividades() {
   const cont = document.getElementById("lista");
 
-  // Columnas posibles según tu proyecto
-  const columnasPosibles = ["monitor", "id_monitor", "monitor_uid"];
-  let columnaValida = null;
-
-  // Intentar obtener una fila para detectar columnas
-  const { data: prueba, error: errorPrueba } = await supabase
-    .from("actividades")
-    .select("*")
-    .limit(1);
-
-  if (errorPrueba) {
-    console.error(errorPrueba);
-    cont.innerHTML = "<p>Error cargando actividades.</p>";
-    return;
-  }
-
-  if (prueba && prueba.length > 0) {
-    for (const col of columnasPosibles) {
-      if (prueba[0].hasOwnProperty(col)) {
-        columnaValida = col;
-        break;
-      }
-    }
-  }
-
-  if (!columnaValida) {
-    cont.innerHTML = "<p>Error: No se encontró columna de monitor en actividades.</p>";
-    return;
-  }
-
-  // Consulta usando la columna correcta
   const { data, error } = await supabase
     .from("actividades")
     .select("*")
-    .eq(columnaValida, user.id)
+    .eq("monitor_id", user.id)   // ← ESTA ES LA COLUMNA CORRECTA
     .order("nombre", { ascending: true });
 
   if (error) {
