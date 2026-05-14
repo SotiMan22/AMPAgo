@@ -34,7 +34,6 @@
       border-radius: 6px;
       cursor: pointer;
       margin-bottom: 20px;
-      display:none;
     }
   </style>
 </head>
@@ -53,7 +52,7 @@
 
   <h2>Anuncios</h2>
 
-  <button id="btnCrear">Crear anuncio</button>
+  <button id="btnCrear" style="display:none;">Crear anuncio</button>
 
   <div id="listaAnuncios">Cargando anuncios...</div>
 
@@ -61,39 +60,6 @@
 
 <script type="module">
 import { supabase } from "../js/supabaseclientes.js";
-
-/* ================= SESIÓN ================= */
-const esInvitado = localStorage.getItem("invitado") === "true";
-const { data: { user } } = await supabase.auth.getUser();
-
-/* Invitado NO puede entrar */
-if (esInvitado) {
-  alert("Los invitados no pueden acceder al tablón");
-  location.href = "./invitado.html";
-  return;
-}
-
-/* Si no hay usuario → login */
-if (!user) {
-  location.href = "./login.html";
-  return;
-}
-
-/* ================= PERMISOS ================= */
-let role = null;
-
-const { data: profile } = await supabase
-  .from("profiles")
-  .select("role")
-  .eq("id", user.id)
-  .maybeSingle();
-
-role = profile?.role;
-
-/* Admin y monitor pueden crear */
-if (role === "admin" || role === "monitor") {
-  document.getElementById("btnCrear").style.display = "inline-block";
-}
 
 /* ================= NAVEGACIÓN UNIVERSAL ================= */
 async function navegar() {
@@ -126,6 +92,31 @@ async function navegar() {
 
 document.getElementById("btnVolver").onclick = navegar;
 document.getElementById("btnInicio").onclick = navegar;
+
+/* ================= SESIÓN ================= */
+const { data: { user } } = await supabase.auth.getUser();
+const esInvitado = localStorage.getItem("invitado") === "true";
+
+if (!user && !esInvitado) {
+  location.href = "./login.html";
+}
+
+/* ================= PERMISOS ================= */
+let role = null;
+
+if (!esInvitado) {
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  role = profile?.role;
+
+  if (["admin", "monitor"].includes(role)) {
+    document.getElementById("btnCrear").style.display = "inline-block";
+  }
+}
 
 /* ================= CARGAR ANUNCIOS ================= */
 async function cargarAnuncios() {
