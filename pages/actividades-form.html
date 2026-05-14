@@ -2,10 +2,8 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Nuevo anuncio - AMPAgo</title>
-
-  <!-- RUTA CORREGIDA -->
-  <link rel="stylesheet" href="/AMPAgo/style.css">
+  <title id="titulo">Crear actividad - AMPAgo</title>
+  <link rel="stylesheet" href="../style.css">
 
   <style>
     .nav-container {
@@ -20,7 +18,7 @@
       border-radius: 4px;
     }
 
-    input, textarea {
+    input, textarea, select {
       width: 100%;
       padding: 10px;
       margin-top: 10px;
@@ -42,113 +40,156 @@
 
 <body>
 
-<header>Nuevo anuncio</header>
+<header id="headerTitulo">Crear actividad</header>
 
 <div class="container">
 
-  <!-- Navegación universal -->
   <div class="nav-container">
-    <button id="btnVolver" class="nav-btn">Volver</button>
-    <button id="btnInicio" class="nav-btn">Inicio</button>
+    <button onclick="location.href='actividades.html'" class="nav-btn">Volver</button>
+    <button onclick="location.href='admin.html'" class="nav-btn">Inicio</button>
   </div>
 
-  <h2>Crear anuncio</h2>
+  <h2 id="subtitulo">Crear actividad</h2>
 
-  <input id="titulo" type="text" placeholder="Título del anuncio">
-  <textarea id="mensaje" placeholder="Mensaje"></textarea>
+  <input id="nombre" type="text" placeholder="Nombre de la actividad">
+  <input id="dia1" type="text" placeholder="Día 1 (lunes, martes...)">
+  <input id="dia2" type="text" placeholder="Día 2 (opcional)">
+  <textarea id="descripcion" placeholder="Descripción"></textarea>
 
-  <button id="btnGuardar">Publicar</button>
+  <label>Monitor</label>
+  <select id="monitor"></select>
+
+  <label>Material</label>
+  <select id="material"></select>
+
+  <label>Zona</label>
+  <select id="zona"></select>
+
+  <button id="btnGuardar">Guardar actividad</button>
 
 </div>
 
 <script type="module">
-
-/* RUTA CORREGIDA */
-import { supabase } from "/AMPAgo/js/supabaseclientes.js";
-
-/* ================= NAVEGACIÓN UNIVERSAL ================= */
-async function navegar() {
-  const esInvitado = localStorage.getItem("invitado") === "true";
-
-  if (esInvitado) {
-    location.href = "/AMPAgo/pages/invitado.html";
-    return;
-  }
-
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
-    location.href = "/AMPAgo/pages/login.html";
-    return;
-  }
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .maybeSingle();
-
-  switch (profile?.role) {
-    case "admin": location.href = "/AMPAgo/pages/admin.html"; break;
-    case "monitor": location.href = "/AMPAgo/pages/monitor.html"; break;
-    case "familiar": location.href = "/AMPAgo/pages/familiar.html"; break;
-    default: location.href = "/AMPAgo/pages/login.html";
-  }
-}
-
-document.getElementById("btnVolver").onclick = navegar;
-document.getElementById("btnInicio").onclick = navegar;
+import { supabase } from "../js/supabaseclientes.js";
 
 /* ================= SESIÓN ================= */
 const { data: { user } } = await supabase.auth.getUser();
-const esInvitado = localStorage.getItem("invitado") === "true";
+if (!user) location.href = "./login.html";
 
-if (esInvitado) {
-  alert("Los invitados no pueden publicar anuncios");
-  location.href = "/AMPAgo/pages/anuncios.html";
+/* ================= OBTENER ID SI VIENE ================= */
+const params = new URLSearchParams(window.location.search);
+const actividadId = params.get("id"); // null si es crear
+
+/* ================= CARGAR SELECTS ================= */
+async function cargarSelects() {
+  const selMonitor = document.getElementById("monitor");
+  const selMaterial = document.getElementById("material");
+  const selZona = document.getElementById("zona");
+
+  // Monitores
+  const { data: monitores } = await supabase
+    .from("profiles")
+    .select("id, nombre, apellidos")
+    .eq("role", "monitor");
+
+  selMonitor.innerHTML = monitores
+    .map(m => `<option value="${m.id}">${m.nombre} ${m.apellidos}</option>`)
+    .join("");
+
+  // Materiales
+  const { data: materiales } = await supabase
+    .from("materiales")
+    .select("*");
+
+  selMaterial.innerHTML = materiales
+    .map(m => `<option value="${m.id}">${m.nombre}</option>`)
+    .join("");
+
+  // Zonas
+  const { data: zonas } = await supabase
+    .from("zonas")
+    .select("*");
+
+  selZona.innerHTML = zonas
+    .map(z => `<option value="${z.id}">${z.nombre}</option>`)
+    .join("");
 }
 
-if (!user) {
-  location.href = "/AMPAgo/pages/login.html";
-}
+/* ================= CARGAR DATOS SI ES EDICIÓN ================= */
+async function cargarActividad() {
+  if (!actividadId) return; // es creación
 
-/* ================= PERMISOS ================= */
-const { data: profile } = await supabase
-  .from("profiles")
-  .select("role")
-  .eq("id", user.id)
-  .maybeSingle();
+  document.getElementById("titulo").textContent = "Modificar actividad";
+  document.getElementById("headerTitulo").textContent = "Modificar actividad";
+  document.getElementById("subtitulo").textContent = "Modificar actividad";
 
-if (!profile || !["admin", "monitor"].includes(profile.role)) {
-  alert("Solo administradores y monitores pueden publicar anuncios");
-  location.href = "/AMPAgo/pages/anuncios.html";
+  const { data, error } = await supabase
+    .from("actividades")
+    .select("*")
+    .eq("id", actividadId)
+    .maybeSingle();
+
+  if (error || !data) {
+    alert("Error cargando actividad");
+    return;
+  }
+
+  // Rellenar campos
+  document.getElementById("nombre").value = data.nombre;
+  document.getElementById("dia1").value = data.dia1;
+  document.getElementById("dia2").value = data.dia2 || "";
+  document.getElementById("descripcion").value = data.descripcion;
+
+  document.getElementById("monitor").value = data.monitor_id;
+  document.getElementById("material").value = data.material_id;
+  document.getElementById("zona").value = data.zona_id;
 }
 
 /* ================= GUARDAR ================= */
 document.getElementById("btnGuardar").onclick = async () => {
-  const titulo = document.getElementById("titulo").value.trim();
-  const mensaje = document.getElementById("mensaje").value.trim();
+  const payload = {
+    nombre: document.getElementById("nombre").value.trim(),
+    dia1: document.getElementById("dia1").value.trim(),
+    dia2: document.getElementById("dia2").value.trim(),
+    descripcion: document.getElementById("descripcion").value.trim(),
+    monitor_id: document.getElementById("monitor").value,
+    material_id: document.getElementById("material").value,
+    zona_id: document.getElementById("zona").value
+  };
 
-  if (!titulo) return alert("El título es obligatorio");
-  if (!mensaje) return alert("El mensaje es obligatorio");
-
-  const { error } = await supabase
-    .from("anuncios")
-    .insert({
-      titulo,
-      mensaje,
-      fecha: new Date().toISOString(),
-      autor_id: user.id
-    });
-
-  if (error) {
-    console.error(error);
-    alert("Error publicando anuncio");
+  if (!payload.nombre || !payload.dia1 || !payload.descripcion) {
+    alert("Rellena los campos obligatorios");
     return;
   }
 
-  alert("Anuncio publicado correctamente");
-  location.href = "/AMPAgo/pages/anuncios.html";
+  let error;
+
+  if (actividadId) {
+    // MODO EDITAR
+    ({ error } = await supabase
+      .from("actividades")
+      .update(payload)
+      .eq("id", actividadId));
+  } else {
+    // MODO CREAR
+    ({ error } = await supabase
+      .from("actividades")
+      .insert(payload));
+  }
+
+  if (error) {
+    alert("Error guardando actividad");
+    console.error(error);
+    return;
+  }
+
+  alert("Actividad guardada correctamente");
+  location.href = "./actividades.html";
 };
+
+/* ================= INIT ================= */
+await cargarSelects();
+await cargarActividad();
 </script>
 
 </body>
