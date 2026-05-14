@@ -65,47 +65,40 @@
 <script type="module">
 import { supabase } from "../js/supabaseclientes.js";
 
-/* ========== 1. SESIÓN + INVITADO ========== */
-const esInvitado = localStorage.getItem("invitado") === "true";
+/* ========== 1. SESIÓN ========== */
 const { data: { user } } = await supabase.auth.getUser();
-if (!user && !esInvitado) location.href = "login.html";
+if (!user) {
+  location.href = "login.html";
+}
 
 /* ========== 2. PERFIL ========== */
-let profile = null;
-if (!esInvitado) {
-  const { data } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .maybeSingle();
+const { data: profile, error } = await supabase
+  .from("profiles")
+  .select("role")
+  .eq("id", user.id)
+  .maybeSingle();
 
-  profile = data;
-  if (!profile) {
-    alert("No se pudo cargar el perfil");
-    location.href = "login.html";
-  }
+if (error || !profile) {
+  alert("No se pudo cargar el perfil");
+  location.href = "login.html";
 }
 
 /* ========== 3. CONTROL DE ACCESO ========== */
-if (!esInvitado && profile.role !== "monitor") {
+if (profile.role !== "monitor") {
   alert("Solo los monitores pueden acceder");
   location.href = "login.html";
 }
 
 /* ========== 4. UI PERFIL ========== */
-if (!esInvitado) {
-  document.getElementById("profileEmail").textContent = user.email;
-  document.getElementById("profileRole").textContent = "Rol: " + profile.role;
-} else {
-  document.getElementById("profileMenu").style.display = "none";
-}
+document.getElementById("profileEmail").textContent = user.email || "";
+document.getElementById("profileRole").textContent = "Rol: " + profile.role;
 
 /* ========== 5. MENÚ PERFIL ========== */
 document.getElementById("profileToggle").onclick = () => {
   const d = document.getElementById("profileDropdown");
   d.style.display = d.style.display === "block" ? "none" : "block";
 };
-document.addEventListener("click", e => {
+document.addEventListener("click", (e) => {
   if (!e.target.closest(".profile-menu")) {
     document.getElementById("profileDropdown").style.display = "none";
   }
@@ -115,10 +108,11 @@ document.addEventListener("click", e => {
 document.getElementById("logoutBtn").onclick = async () => {
   await supabase.auth.signOut();
   localStorage.removeItem("invitado");
+  sessionStorage.removeItem("invitado");
   location.href = "login.html";
 };
 
-/* ========== 7. BOTÓN INICIO ========== */
+/* ========== 7. BOTÓN INICIO (cerrar sesión siempre) ========== */
 document.getElementById("btnInicio").onclick = async () => {
   await supabase.auth.signOut();
   localStorage.removeItem("invitado");
@@ -136,8 +130,16 @@ async function cargarActividades() {
 
   const cont = document.getElementById("lista");
 
-  if (error) return cont.innerHTML = "<p>Error cargando actividades.</p>";
-  if (!data || data.length === 0) return cont.innerHTML = "<p>No tienes actividades asignadas.</p>";
+  if (error) {
+    console.error(error);
+    cont.innerHTML = "<p>Error cargando actividades.</p>";
+    return;
+  }
+
+  if (!data || data.length === 0) {
+    cont.innerHTML = "<p>No tienes actividades asignadas.</p>";
+    return;
+  }
 
   cont.innerHTML = data.map(a => `
     <div class="card">
@@ -145,7 +147,9 @@ async function cargarActividades() {
       <p><strong>Día 1:</strong> ${a.dia1 || ""}</p>
       <p><strong>Día 2:</strong> ${a.dia2 || "—"}</p>
       <p>${a.descripcion || ""}</p>
-      <button onclick="location.href='mis-alumnos.html?id=${a.id}'">Ver alumnos</button>
+      <button onclick="location.href='mis-alumnos.html?id=${a.id}'">
+        Ver alumnos
+      </button>
     </div>
   `).join("");
 }
