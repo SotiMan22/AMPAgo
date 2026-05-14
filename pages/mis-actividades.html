@@ -92,7 +92,7 @@ const { data: profile, error } = await supabase
   .eq("id", user.id)
   .maybeSingle();
 
-/* Error real → expulsar */
+/* Error REAL → expulsar */
 if (error) {
   alert("Error cargando perfil");
   location.href = "./login.html";
