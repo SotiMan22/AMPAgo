@@ -125,13 +125,7 @@ async function navegar() {
 }
 
 document.getElementById("btnVolver").onclick = navegar;
-
-/* ================= BOTÓN INICIO (ARREGLADO) ================= */
-document.getElementById("btnInicio").onclick = async () => {
-  await supabase.auth.signOut();
-  localStorage.removeItem("invitado");
-  location.href = "./login.html";
-};
+document.getElementById("btnInicio").onclick = navegar;
 
 /* ================= CARGAR ANUNCIOS ================= */
 async function cargarAnuncios() {
