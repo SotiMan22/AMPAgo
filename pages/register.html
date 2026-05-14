@@ -2,59 +2,30 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Actividades - AMPAgo</title>
+  <title>Crear cuenta - AMPAgo</title>
   <link rel="stylesheet" href="../style.css">
-
-  <style>
-    .admin-buttons {
-      margin-bottom: 15px;
-    }
-    .admin-buttons button {
-      margin-right: 10px;
-    }
-  </style>
 </head>
 
 <body>
 
-<header>
-  Actividades
-
-  <div class="profile-menu">
-    <img src="../img/user.png" class="profile-icon" id="profileToggle">
-
-    <div class="profile-dropdown" id="profileDropdown">
-      <p id="profileEmail"></p>
-      <p id="profileRole"></p>
-      <button id="logoutBtn">Cerrar sesión</button>
-    </div>
-  </div>
-</header>
+<header>AMPAgo</header>
 
 <div class="container">
 
-  <!-- BOTONES ADMIN (OCULTOS POR DEFECTO) -->
-  <div id="adminControls" class="admin-buttons" style="display:none;">
-    <button onclick="location.href='./crear-actividad.html'">Crear actividad</button>
-  </div>
+  <h2>Crear cuenta (solo admin)</h2>
 
-  <h2>Lista de actividades</h2>
+  <input id="nombre" type="text" placeholder="Nombre">
+  <input id="apellidos" type="text" placeholder="Apellidos">
+  <input id="email" type="email" placeholder="Correo electrónico">
+  <input id="password" type="password" placeholder="Contraseña">
 
-  <table>
-    <thead>
-      <tr>
-        <th>Nombre</th>
-        <th>Día 1</th>
-        <th>Día 2</th>
-        <th>Descripción</th>
-        <th>Monitor</th>
-        <th>Material</th>
-        <th>Zona</th>
-        <th id="accionesHeader" style="display:none;">Acciones</th>
-      </tr>
-    </thead>
-    <tbody id="lista"></tbody>
-  </table>
+  <select id="role">
+    <option value="familiar">Familiar</option>
+    <option value="monitor">Monitor</option>
+  </select>
+
+  <button id="btnRegister">Crear cuenta</button>
+  <button onclick="location.href='admin.html'">Volver</button>
 
 </div>
 
@@ -62,13 +33,16 @@
 import { supabase } from "../js/supabaseclientes.js";
 
 /* ============================================================
-   SESIÓN
+   1. VERIFICAR SESIÓN
 ============================================================ */
 const { data: { user } } = await supabase.auth.getUser();
-if (!user) location.href = "./login.html";
+
+if (!user) {
+  location.href = "login.html";
+}
 
 /* ============================================================
-   PERFIL
+   2. VERIFICAR ADMIN
 ============================================================ */
 const { data: profile } = await supabase
   .from("profiles")
@@ -76,108 +50,81 @@ const { data: profile } = await supabase
   .eq("id", user.id)
   .maybeSingle();
 
-if (!profile) {
-  alert("No se pudo cargar el perfil");
-  location.href = "./login.html";
+if (!profile || profile.role !== "admin") {
+  alert("Solo el administrador puede crear cuentas");
+  location.href = "login.html";
 }
 
-const role = profile.role;
-document.getElementById("profileEmail").textContent = user.email;
-document.getElementById("profileRole").textContent = "Rol: " + role;
-
 /* ============================================================
-   MENÚ PERFIL
+   3. CREAR USUARIO (SIN AUTO LOGIN)
 ============================================================ */
-document.getElementById("profileToggle").onclick = () => {
-  const d = document.getElementById("profileDropdown");
-  d.style.display = d.style.display === "block" ? "none" : "block";
-};
+document.getElementById("btnRegister").onclick = async () => {
 
-document.addEventListener("click", (e) => {
-  if (!e.target.closest(".profile-menu")) {
-    document.getElementById("profileDropdown").style.display = "none";
-  }
-});
+  const nombre = document.getElementById("nombre").value.trim();
+  const apellidos = document.getElementById("apellidos").value.trim();
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value;
+  const role = document.getElementById("role").value;
 
-/* ============================================================
-   LOGOUT
-============================================================ */
-document.getElementById("logoutBtn").onclick = async () => {
-  await supabase.auth.signOut();
-  location.href = "./login.html";
-};
-
-/* ============================================================
-   CARGAR ACTIVIDADES SEGÚN ROL
-============================================================ */
-async function cargarActividades() {
-  let query = supabase.from("actividades").select("*");
-
-  // MONITOR → solo sus actividades
-  if (role === "monitor") {
-    query = query.eq("monitor_id", user.id);
-  }
-
-  const { data, error } = await query;
-
-  if (error) {
-    alert("Error cargando actividades");
+  if (!nombre || !apellidos || !email || !password) {
+    alert("Completa todos los campos");
     return;
   }
 
-  const cont = document.getElementById("lista");
-
-  cont.innerHTML = data.map(a => `
-    <tr>
-      <td>${a.nombre}</td>
-      <td>${a.dia1}</td>
-      <td>${a.dia2}</td>
-      <td>${a.descripcion}</td>
-      <td>${a.monitor_id}</td>
-      <td>${a.material_id}</td>
-      <td>${a.zona_id}</td>
-
-      ${
-        role === "admin"
-        ? `<td>
-             <button onclick="location.href='./modificar-actividad.html?id=${a.id}'">Modificar</button>
-             <button onclick="eliminar(${a.id})">Eliminar</button>
-           </td>`
-        : ""
-      }
-    </tr>
-  `).join("");
-
-  // Mostrar controles admin
-  if (role === "admin") {
-    document.getElementById("adminControls").style.display = "block";
-    document.getElementById("accionesHeader").style.display = "table-cell";
-  }
-}
-
-cargarActividades();
-
-/* ============================================================
-   ELIMINAR ACTIVIDAD (SOLO ADMIN)
-============================================================ */
-async function eliminar(id) {
-  if (role !== "admin") return;
-
-  if (!confirm("¿Eliminar actividad?")) return;
-
-  const { error } = await supabase
-    .from("actividades")
-    .delete()
-    .eq("id", id);
-
-  if (error) {
-    alert("Error eliminando actividad");
+  if (!email.includes("@")) {
+    alert("Email inválido");
     return;
   }
 
-  alert("Actividad eliminada");
-  cargarActividades();
-}
+  const btn = document.getElementById("btnRegister");
+  btn.disabled = true;
+  btn.textContent = "Creando...";
+
+  try {
+
+    /* 1. Crear usuario en Auth */
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password
+    });
+
+    if (error) throw error;
+
+    const newUser = data.user;
+
+    if (!newUser) {
+      throw new Error("No se pudo crear el usuario");
+    }
+
+    /* 2. Crear perfil */
+    const { error: profileError } = await supabase
+      .from("profiles")
+      .insert({
+        id: newUser.id,
+        email,
+        nombre,
+        apellidos,
+        role
+      });
+
+    if (profileError) throw profileError;
+
+    /* 3. 🔥 IMPORTANTE: evitar login automático */
+    await supabase.auth.signOut();
+
+    alert("Cuenta creada correctamente");
+
+    /* 4. Volver a register (NO a actividades) */
+    location.href = "register.html";
+
+  } catch (err) {
+    console.error(err);
+    alert("Error: " + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Crear cuenta";
+  }
+};
 
 </script>
 
