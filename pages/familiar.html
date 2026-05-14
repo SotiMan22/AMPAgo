@@ -12,6 +12,7 @@
   Panel Familiar
 
   <div class="profile-menu">
+    <!-- FOTO FIJA COMO EN ADMIN -->
     <img src="../imagenes/familiar.png" class="profile-icon" id="profileToggle">
 
     <div class="profile-dropdown" id="profileDropdown">
@@ -26,17 +27,9 @@
 
   <h2>Bienvenido</h2>
 
-  <button onclick="location.href='./mis-hijos.html'">
-    Mis hijos
-  </button>
-
-  <button onclick="location.href='./actividades.html'">
-    Actividades disponibles
-  </button>
-
-  <button onclick="location.href='./anuncios.html'">
-    Tablón de anuncios
-  </button>
+  <button onclick="location.href='./mis-hijos.html'">Mis hijos</button>
+  <button onclick="location.href='./actividades.html'">Actividades disponibles</button>
+  <button onclick="location.href='./anuncios.html'">Tablón de anuncios</button>
 
 </div>
 
@@ -47,7 +40,6 @@ import { supabase } from "../js/supabaseclientes.js";
    BLOQUEAR BOTÓN ATRÁS
 ============================================================ */
 window.history.pushState(null, "", window.location.href);
-
 window.addEventListener("popstate", () => {
   window.history.pushState(null, "", window.location.href);
 });
@@ -56,17 +48,14 @@ window.addEventListener("popstate", () => {
    SESIÓN
 ============================================================ */
 const { data: { user } } = await supabase.auth.getUser();
-
-if (!user) {
-  location.href = "./login.html";
-}
+if (!user) location.href = "./login.html";
 
 /* ============================================================
-   PERFIL — AÑADIDO avatar_url
+   PERFIL — SOLO COLUMNAS QUE EXISTEN
 ============================================================ */
 const { data: profile, error } = await supabase
   .from("profiles")
-  .select("role, nombre, apellidos, avatar_url")
+  .select("role")
   .eq("id", user.id)
   .maybeSingle();
 
@@ -76,7 +65,7 @@ if (error || !profile) {
 }
 
 /* ============================================================
-   CONTROL DE ACCESO (NO TOCADO)
+   CONTROL DE ACCESO
 ============================================================ */
 if (profile.role !== "familiar") {
   alert("Acceso restringido a familiares");
@@ -84,17 +73,10 @@ if (profile.role !== "familiar") {
 }
 
 /* ============================================================
-   UI PERFIL — AÑADIDA FOTO DE PERFIL
+   UI PERFIL
 ============================================================ */
 document.getElementById("profileEmail").textContent = user.email || "";
-document.getElementById("profileRole").textContent = "Rol: " + profile.role;
-
-/* FOTO DE PERFIL */
-if (profile.avatar_url) {
-  document.getElementById("profileToggle").src = profile.avatar_url;
-} else {
-  document.getElementById("profileToggle").src = "../img/user.png";
-}
+document.getElementById("profileRole").textContent = "Rol: familiar";
 
 /* ============================================================
    MENÚ PERFIL
@@ -111,7 +93,7 @@ document.addEventListener("click", (e) => {
 });
 
 /* ============================================================
-   LOGOUT (CORREGIDO)
+   LOGOUT
 ============================================================ */
 document.getElementById("logoutBtn").onclick = async () => {
   await supabase.auth.signOut();
