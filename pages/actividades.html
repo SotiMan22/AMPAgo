@@ -2,16 +2,18 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Actividades - Admin/Monitor</title>
+  <title>Crear / Editar Actividad - AMPAgo</title>
   <link rel="stylesheet" href="../style.css">
 
   <style>
-    .fila-seleccionada {
-      background-color: #ffe08a !important;
+    .form-container {
+      max-width: 600px;
+      margin: auto;
     }
-    .boton-desactivado {
-      opacity: 0.5;
-      pointer-events: none;
+    input, select, textarea {
+      width: 100%;
+      margin-bottom: 12px;
+      padding: 8px;
     }
   </style>
 </head>
@@ -19,7 +21,7 @@
 <body>
 
 <header>
-  Actividades
+  Actividad
 
   <div class="profile-menu">
     <img src="../img/user.png" class="profile-icon" id="profileToggle">
@@ -32,42 +34,31 @@
   </div>
 </header>
 
-<div class="container">
+<div class="container form-container">
 
-  <!-- BOTONES SUPERIORES -->
-  <button onclick="location.href='./admin.html'">Volver</button>
-  <button id="btnCrear">Crear actividad</button>
-  <button onclick="location.href='./login.html'">Inicio</button>
+  <h2 id="titulo">Crear actividad</h2>
 
-  <h2>Actividades</h2>
+  <input id="nombre" type="text" placeholder="Nombre de la actividad">
+  <input id="dia1" type="text" placeholder="Día 1 (lunes, martes...)">
+  <input id="dia2" type="text" placeholder="Día 2 (opcional)">
+  <textarea id="descripcion" placeholder="Descripción"></textarea>
 
-  <table id="tabla">
-    <thead>
-      <tr>
-        <th>Nombre</th>
-        <th>Día 1</th>
-        <th>Día 2</th>
-        <th>Descripción</th>
-        <th>Monitor</th>
-        <th>Material</th>
-        <th>Zona</th>
-      </tr>
-    </thead>
-    <tbody id="lista"></tbody>
-  </table>
+  <label>Monitor</label>
+  <select id="monitor"></select>
 
-  <br>
+  <label>Material</label>
+  <select id="material"></select>
 
-  <!-- BOTONES DE ACCIÓN -->
-  <button id="btnModificar" class="boton-desactivado">Modificar</button>
-  <button id="btnEliminar" class="boton-desactivado">Eliminar</button>
+  <label>Zona</label>
+  <select id="zona"></select>
+
+  <button id="btnGuardar">Guardar actividad</button>
+  <button onclick="location.href='./actividades-admin-monitor.html'">Cancelar</button>
 
 </div>
 
 <script type="module">
 import { supabase } from "../js/supabaseclientes.js";
-
-let actividadSeleccionada = null;
 
 /* ============================================================
    SESIÓN
@@ -89,97 +80,86 @@ if (!profile || (profile.role !== "admin" && profile.role !== "monitor")) {
   location.href = "./login.html";
 }
 
-const role = profile.role;
-
 document.getElementById("profileEmail").textContent = user.email;
-document.getElementById("profileRole").textContent = "Rol: " + role;
+document.getElementById("profileRole").textContent = "Rol: " + profile.role;
 
 /* ============================================================
-   CARGAR ACTIVIDADES
+   CARGAR SELECTS
 ============================================================ */
-async function cargar() {
-  let query = supabase.from("actividades").select("*");
+async function cargarSelects() {
 
-  if (role === "monitor") {
-    query = query.eq("monitor_id", user.id);
-  }
+  // Monitores
+  const { data: monitores } = await supabase
+    .from("profiles")
+    .select("id, nombre, apellidos, role")
+    .eq("role", "monitor");
 
-  const { data } = await query;
+  const selMonitor = document.getElementById("monitor");
+  selMonitor.innerHTML = monitores.map(m =>
+    `<option value="${m.id}">${m.nombre} ${m.apellidos}</option>`
+  ).join("");
 
-  const cont = document.getElementById("lista");
-  cont.innerHTML = "";
+  // Materiales
+  const { data: materiales } = await supabase
+    .from("materiales")
+    .select("*");
 
-  data.forEach(a => {
-    const tr = document.createElement("tr");
+  const selMaterial = document.getElementById("material");
+  selMaterial.innerHTML = materiales.map(m =>
+    `<option value="${m.id}">${m.nombre}</option>`
+  ).join("");
 
-    tr.innerHTML = `
-      <td>${a.nombre}</td>
-      <td>${a.dia1}</td>
-      <td>${a.dia2}</td>
-      <td>${a.descripcion}</td>
-      <td>${a.monitor_id}</td>
-      <td>${a.material_id}</td>
-      <td>${a.zona_id}</td>
-    `;
+  // Zonas
+  const { data: zonas } = await supabase
+    .from("zonas")
+    .select("*");
 
-    tr.onclick = () => seleccionarFila(tr, a.id);
-
-    cont.appendChild(tr);
-  });
+  const selZona = document.getElementById("zona");
+  selZona.innerHTML = zonas.map(z =>
+    `<option value="${z.id}">${z.nombre}</option>`
+  ).join("");
 }
 
-cargar();
+cargarSelects();
 
 /* ============================================================
-   SELECCIONAR FILA
+   GUARDAR ACTIVIDAD
 ============================================================ */
-function seleccionarFila(fila, id) {
-  document.querySelectorAll("#lista tr").forEach(tr => tr.classList.remove("fila-seleccionada"));
+document.getElementById("btnGuardar").onclick = async () => {
 
-  fila.classList.add("fila-seleccionada");
-  actividadSeleccionada = id;
+  const nombre = document.getElementById("nombre").value.trim();
+  const dia1 = document.getElementById("dia1").value.trim();
+  const dia2 = document.getElementById("dia2").value.trim();
+  const descripcion = document.getElementById("descripcion").value.trim();
+  const monitor_id = document.getElementById("monitor").value;
+  const material_id = document.getElementById("material").value;
+  const zona_id = document.getElementById("zona").value;
 
-  document.getElementById("btnModificar").classList.remove("boton-desactivado");
-  document.getElementById("btnEliminar").classList.remove("boton-desactivado");
-}
-
-/* ============================================================
-   MODIFICAR
-============================================================ */
-document.getElementById("btnModificar").onclick = () => {
-  if (!actividadSeleccionada) return;
-  location.href = `./modificar-actividad.html?id=${actividadSeleccionada}`;
-};
-
-/* ============================================================
-   ELIMINAR
-============================================================ */
-document.getElementById("btnEliminar").onclick = async () => {
-  if (!actividadSeleccionada) return;
-
-  const seguro = confirm("¿Seguro que quieres eliminar esta actividad?");
-  if (!seguro) return;
-
-  await supabase.from("actividades").delete().eq("id", actividadSeleccionada);
-
-  alert("Actividad eliminada");
-  actividadSeleccionada = null;
-
-  document.getElementById("btnModificar").classList.add("boton-desactivado");
-  document.getElementById("btnEliminar").classList.add("boton-desactivado");
-
-  cargar();
-};
-
-/* ============================================================
-   CREAR
-============================================================ */
-document.getElementById("btnCrear").onclick = () => {
-  if (role !== "admin") {
-    alert("Solo el administrador puede crear actividades");
+  if (!nombre || !dia1 || !descripcion) {
+    alert("Rellena todos los campos obligatorios");
     return;
   }
-  location.href = "./crear-actividad.html";
+
+  const { error } = await supabase
+    .from("actividades")
+    .insert({
+      nombre,
+      dia1,
+      dia2,
+      descripcion,
+      monitor_id,
+      material_id,
+      zona_id
+    });
+
+  if (error) {
+    alert("Error guardando actividad");
+    console.error(error);
+    return;
+  }
+
+  alert("Actividad creada correctamente");
+  location.href = "./actividades-admin-monitor.html";
 };
 
 /* ============================================================
