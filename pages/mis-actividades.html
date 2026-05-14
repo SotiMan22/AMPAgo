@@ -64,7 +64,7 @@ if (!user) {
 }
 
 /* ============================================================
-   2. PERFIL — CORREGIDO PARA NO EXPULSAR SI TARDA
+   2. PERFIL — SIN EXPULSAR SI TARDA
 ============================================================ */
 const { data: profile, error } = await supabase
   .from("profiles")
@@ -72,17 +72,14 @@ const { data: profile, error } = await supabase
   .eq("id", user.id)
   .maybeSingle();
 
-/* Error REAL → expulsar */
 if (error) {
   console.error(error);
   alert("No se pudo cargar el perfil");
   location.href = "./login.html";
 }
 
-/* Rol seguro */
 const role = (profile?.role ?? "").trim().toLowerCase();
 
-/* SOLO expulsar si el rol REAL es incorrecto */
 if (role && role !== "monitor") {
   alert("Solo los monitores pueden acceder");
   location.href = "./login.html";
@@ -118,16 +115,47 @@ document.getElementById("logoutBtn").onclick = async () => {
 };
 
 /* ============================================================
-   6. ACTIVIDADES DEL MONITOR — COLUMNA CORRECTA
+   6. ACTIVIDADES DEL MONITOR — AUTODETECCIÓN DE COLUMNA
 ============================================================ */
 async function cargarActividades() {
+  const cont = document.getElementById("lista");
+
+  // Columnas posibles según tu proyecto
+  const columnasPosibles = ["monitor", "id_monitor", "monitor_uid"];
+  let columnaValida = null;
+
+  // Intentar obtener una fila para detectar columnas
+  const { data: prueba, error: errorPrueba } = await supabase
+    .from("actividades")
+    .select("*")
+    .limit(1);
+
+  if (errorPrueba) {
+    console.error(errorPrueba);
+    cont.innerHTML = "<p>Error cargando actividades.</p>";
+    return;
+  }
+
+  if (prueba && prueba.length > 0) {
+    for (const col of columnasPosibles) {
+      if (prueba[0].hasOwnProperty(col)) {
+        columnaValida = col;
+        break;
+      }
+    }
+  }
+
+  if (!columnaValida) {
+    cont.innerHTML = "<p>Error: No se encontró columna de monitor en actividades.</p>";
+    return;
+  }
+
+  // Consulta usando la columna correcta
   const { data, error } = await supabase
     .from("actividades")
     .select("*")
-    .eq("monitor", user.id)   // ← ESTA ES LA COLUMNA CORRECTA
+    .eq(columnaValida, user.id)
     .order("nombre", { ascending: true });
-
-  const cont = document.getElementById("lista");
 
   if (error) {
     console.error(error);
