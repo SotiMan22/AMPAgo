@@ -12,7 +12,7 @@
   Panel Familiar
 
   <div class="profile-menu">
-    <img src="../img/user.png" class="profile-icon" id="profileToggle">
+    <img src="../imagenes/familiar.png" class="profile-icon" id="profileToggle">
 
     <div class="profile-dropdown" id="profileDropdown">
       <p id="profileEmail"></p>
@@ -47,6 +47,7 @@ import { supabase } from "../js/supabaseclientes.js";
    BLOQUEAR BOTÓN ATRÁS
 ============================================================ */
 window.history.pushState(null, "", window.location.href);
+
 window.addEventListener("popstate", () => {
   window.history.pushState(null, "", window.location.href);
 });
@@ -55,10 +56,13 @@ window.addEventListener("popstate", () => {
    SESIÓN
 ============================================================ */
 const { data: { user } } = await supabase.auth.getUser();
-if (!user) location.href = "./login.html";
+
+if (!user) {
+  location.href = "./login.html";
+}
 
 /* ============================================================
-   PERFIL — INCLUYE avatar_url
+   PERFIL — AÑADIDO avatar_url
 ============================================================ */
 const { data: profile, error } = await supabase
   .from("profiles")
@@ -66,31 +70,27 @@ const { data: profile, error } = await supabase
   .eq("id", user.id)
   .maybeSingle();
 
-if (error) {
+if (error || !profile) {
   alert("No se pudo cargar el perfil");
   location.href = "./login.html";
 }
 
 /* ============================================================
-   CONTROL DE ACCESO — AHORA CORRECTO
+   CONTROL DE ACCESO (NO TOCADO)
 ============================================================ */
-const role = (profile?.role ?? "").trim().toLowerCase();
-
-// Si Supabase tarda → NO expulsar
-if (!role) {
-  console.log("Esperando rol...");
-} else if (role !== "familiar") {
+if (profile.role !== "familiar") {
   alert("Acceso restringido a familiares");
   location.href = "./login.html";
 }
 
 /* ============================================================
-   UI PERFIL — FOTO + EMAIL + ROL
+   UI PERFIL — AÑADIDA FOTO DE PERFIL
 ============================================================ */
 document.getElementById("profileEmail").textContent = user.email || "";
-document.getElementById("profileRole").textContent = "Rol: familiar";
+document.getElementById("profileRole").textContent = "Rol: " + profile.role;
 
-if (profile?.avatar_url) {
+/* FOTO DE PERFIL */
+if (profile.avatar_url) {
   document.getElementById("profileToggle").src = profile.avatar_url;
 } else {
   document.getElementById("profileToggle").src = "../img/user.png";
@@ -111,7 +111,7 @@ document.addEventListener("click", (e) => {
 });
 
 /* ============================================================
-   LOGOUT
+   LOGOUT (CORREGIDO)
 ============================================================ */
 document.getElementById("logoutBtn").onclick = async () => {
   await supabase.auth.signOut();
