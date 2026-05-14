@@ -27,19 +27,6 @@
       border-radius: 6px;
       cursor: pointer;
     }
-
-    .nav-container {
-      margin: 10px 0 20px 0;
-    }
-
-    .nav-btn {
-      background: #eee;
-      border: 1px solid #ccc;
-      padding: 6px 12px;
-      margin-right: 10px;
-      cursor: pointer;
-      border-radius: 4px;
-    }
   </style>
 </head>
 
@@ -60,13 +47,6 @@
 </header>
 
 <div class="container">
-
-  <!-- Navegación universal -->
-  <div class="nav-container">
-    <button id="btnVolver" class="nav-btn">Volver</button>
-    <button id="btnInicio" class="nav-btn">Inicio</button>
-  </div>
-
   <h2>Actividades asignadas</h2>
   <div id="lista"></div>
 </div>
@@ -88,18 +68,18 @@ if (!user) {
 ============================================================ */
 const { data: profile, error } = await supabase
   .from("profiles")
-  .select("role, avatar_url")
+  .select("role")
   .eq("id", user.id)
   .maybeSingle();
 
 /* Error REAL → expulsar */
 if (error) {
   console.error(error);
-  alert("Error cargando perfil");
+  alert("No se pudo cargar el perfil");
   location.href = "./login.html";
 }
 
-/* Rol seguro (aunque profile tarde en llegar) */
+/* Rol seguro */
 const role = (profile?.role ?? "").trim().toLowerCase();
 
 /* SOLO expulsar si el rol REAL es incorrecto */
@@ -113,11 +93,6 @@ if (role && role !== "monitor") {
 ============================================================ */
 document.getElementById("profileEmail").textContent = user.email || "";
 document.getElementById("profileRole").textContent = "Rol: monitor";
-
-/* Avatar persistente */
-if (profile?.avatar_url) {
-  document.getElementById("profileToggle").src = profile.avatar_url;
-}
 
 /* ============================================================
    4. MENÚ PERFIL
@@ -143,34 +118,13 @@ document.getElementById("logoutBtn").onclick = async () => {
 };
 
 /* ============================================================
-   6. NAVEGACIÓN UNIVERSAL
-============================================================ */
-document.getElementById("btnVolver").onclick = () => {
-  location.href = "./monitor.html";
-};
-
-document.getElementById("btnInicio").onclick = async () => {
-  await supabase.auth.signOut();
-  localStorage.removeItem("invitado");
-  location.href = "./login.html";
-};
-
-/* ============================================================
-   7. BLOQUEAR RETROCESO
-============================================================ */
-history.pushState(null, null, location.href);
-window.onpopstate = function () {
-  history.go(1);
-};
-
-/* ============================================================
-   8. ACTIVIDADES DEL MONITOR
+   6. ACTIVIDADES DEL MONITOR — COLUMNA CORRECTA
 ============================================================ */
 async function cargarActividades() {
   const { data, error } = await supabase
     .from("actividades")
     .select("*")
-    .eq("monitor_id", user.id)
+    .eq("monitor", user.id)   // ← ESTA ES LA COLUMNA CORRECTA
     .order("nombre", { ascending: true });
 
   const cont = document.getElementById("lista");
