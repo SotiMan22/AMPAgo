@@ -17,19 +17,6 @@
     .card p {
       margin: 4px 0;
     }
-
-    .nav-container {
-      margin: 10px 0 20px 0;
-    }
-
-    .nav-btn {
-      background: #eee;
-      border: 1px solid #ccc;
-      padding: 6px 12px;
-      margin-right: 10px;
-      cursor: pointer;
-      border-radius: 4px;
-    }
   </style>
 </head>
 
@@ -38,7 +25,7 @@
 <header>
   Mis alumnos
 
-  <div class="profile-menu" id="profileMenu">
+  <div class="profile-menu">
     <img src="../img/user.png" class="profile-icon" id="profileToggle">
 
     <div class="profile-dropdown" id="profileDropdown">
@@ -51,15 +38,11 @@
 
 <div class="container">
 
-  <!-- 🔥 BOTONES QUE PEDISTE -->
-  <div class="nav-container">
-    <button id="btnVolver" class="nav-btn">Volver</button>
-    <button id="btnInicio" class="nav-btn">Inicio</button>
-  </div>
-
   <h2 id="titulo">Alumnos</h2>
 
   <div id="lista"></div>
+
+  <button onclick="history.back()">Volver</button>
 
 </div>
 
@@ -67,60 +50,48 @@
 import { supabase } from "../js/supabaseclientes.js";
 
 /* ============================================================
-   1. SESIÓN + INVITADO
-============================================================ */
-const esInvitado = localStorage.getItem("invitado") === "true";
+   1. SESIÓN
+   ============================================================ */
 const { data: { user } } = await supabase.auth.getUser();
 
-if (!user && !esInvitado) {
+if (!user) {
   location.href = "login.html";
 }
 
 /* ============================================================
-   2. PERFIL (solo si NO es invitado)
-============================================================ */
-let profile = null;
+   2. PERFIL
+   ============================================================ */
+const { data: profile } = await supabase
+  .from("profiles")
+  .select("role")
+  .eq("id", user.id)
+  .maybeSingle();
 
-if (!esInvitado) {
-  const { data } = await supabase
-    .from("profiles")
-    .select("role, avatar_url")
-    .eq("id", user.id)
-    .maybeSingle();
-
-  profile = data;
-
-  if (!profile) {
-    alert("No se pudo cargar el perfil");
-    location.href = "login.html";
-  }
+if (!profile) {
+  alert("No se pudo cargar el perfil");
+  location.href = "login.html";
 }
 
 /* ============================================================
    3. CONTROL DE ACCESO
-============================================================ */
-if (!esInvitado && profile.role !== "monitor") {
+   ============================================================ */
+if (profile.role !== "monitor") {
   alert("Solo los monitores pueden acceder");
   location.href = "login.html";
 }
 
 /* ============================================================
    4. UI PERFIL
-============================================================ */
-if (!esInvitado) {
-  document.getElementById("profileEmail").textContent = user.email || "";
-  document.getElementById("profileRole").textContent = "Rol: " + profile.role;
+   ============================================================ */
+document.getElementById("profileEmail").textContent =
+  user.email || "";
 
-  if (profile.avatar_url) {
-    document.getElementById("profileToggle").src = profile.avatar_url;
-  }
-} else {
-  document.getElementById("profileMenu").style.display = "none";
-}
+document.getElementById("profileRole").textContent =
+  "Rol: " + profile.role;
 
 /* ============================================================
    5. MENÚ PERFIL
-============================================================ */
+   ============================================================ */
 document.getElementById("profileToggle").onclick = () => {
   const d = document.getElementById("profileDropdown");
   d.style.display = d.style.display === "block" ? "none" : "block";
@@ -134,38 +105,15 @@ document.addEventListener("click", (e) => {
 
 /* ============================================================
    6. LOGOUT
-============================================================ */
+   ============================================================ */
 document.getElementById("logoutBtn").onclick = async () => {
   await supabase.auth.signOut();
-  localStorage.removeItem("invitado");
   location.href = "login.html";
 };
 
 /* ============================================================
-   7. NAVEGACIÓN UNIVERSAL
-============================================================ */
-document.getElementById("btnVolver").onclick = () => {
-  location.href = "mis-actividades.html";
-};
-
-document.getElementById("btnInicio").onclick = async () => {
-  await supabase.auth.signOut();
-  localStorage.removeItem("invitado");
-  sessionStorage.removeItem("invitado");
-  location.href = "login.html";
-};
-
-/* ============================================================
-   8. BLOQUEAR RETROCESO
-============================================================ */
-history.pushState(null, null, location.href);
-window.onpopstate = function () {
-  history.go(1);
-};
-
-/* ============================================================
-   9. ID ACTIVIDAD
-============================================================ */
+   7. ID ACTIVIDAD
+   ============================================================ */
 const params = new URLSearchParams(window.location.search);
 const actividad_id = params.get("id");
 
@@ -175,26 +123,24 @@ if (!actividad_id) {
 }
 
 /* ============================================================
-   10. VERIFICAR ACTIVIDAD (solo si NO es invitado)
-============================================================ */
-if (!esInvitado) {
-  const { data: actividad } = await supabase
-    .from("actividades")
-    .select("id, nombre, monitor_id")
-    .eq("id", actividad_id)
-    .maybeSingle();
+   8. VERIFICAR ACTIVIDAD
+   ============================================================ */
+const { data: actividad } = await supabase
+  .from("actividades")
+  .select("id, nombre, monitor_id")
+  .eq("id", actividad_id)
+  .maybeSingle();
 
-  if (!actividad || actividad.monitor_id !== user.id) {
-    alert("No tienes permiso para ver esta actividad");
-    location.href = "mis-actividades.html";
-  }
-
-  document.getElementById("titulo").textContent = actividad.nombre;
+if (!actividad || actividad.monitor_id !== user.id) {
+  alert("No tienes permiso para ver esta actividad");
+  location.href = "mis-actividades.html";
 }
 
+document.getElementById("titulo").textContent = actividad.nombre;
+
 /* ============================================================
-   11. CARGAR ALUMNOS
-============================================================ */
+   9. CARGAR ALUMNOS
+   ============================================================ */
 async function cargarAlumnos() {
 
   const { data, error } = await supabase
@@ -222,7 +168,9 @@ async function cargarAlumnos() {
 
   cont.innerHTML = data.map(i => `
     <div class="card">
-      <p><strong>${i.alumnos?.nombre || ""} ${i.alumnos?.apellidos || ""}</strong></p>
+      <p><strong>
+        ${i.alumnos?.nombre || ""} ${i.alumnos?.apellidos || ""}
+      </strong></p>
     </div>
   `).join("");
 }
