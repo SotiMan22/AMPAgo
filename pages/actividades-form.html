@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title id="titulo">Crear actividad - AMPAgo</title>
+  <title>Formulario Actividad - AMPAgo</title>
   <link rel="stylesheet" href="../style.css">
 
   <style>
@@ -17,179 +17,201 @@
       cursor: pointer;
       border-radius: 4px;
     }
-
-    input, textarea, select {
-      width: 100%;
-      padding: 10px;
-      margin-top: 10px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-    }
-
-    #btnGuardar {
-      background-color: #c62828;
-      color: white;
-      border: none;
-      padding: 10px 15px;
-      margin-top: 15px;
-      border-radius: 6px;
-      cursor: pointer;
-    }
   </style>
 </head>
 
 <body>
 
-<header id="headerTitulo">Crear actividad</header>
+<header>Actividades – Formulario</header>
 
 <div class="container">
 
   <div class="nav-container">
-    <button onclick="location.href='actividades.html'" class="nav-btn">Volver</button>
-    <button onclick="location.href='admin.html'" class="nav-btn">Inicio</button>
+    <button id="btnVolver" class="nav-btn">Volver</button>
+    <button id="btnInicio" class="nav-btn">Inicio</button>
   </div>
 
-  <h2 id="subtitulo">Crear actividad</h2>
+  <h2 id="tituloForm">Crear actividad</h2>
 
-  <input id="nombre" type="text" placeholder="Nombre de la actividad">
-  <input id="dia1" type="text" placeholder="Día 1 (lunes, martes...)">
-  <input id="dia2" type="text" placeholder="Día 2 (opcional)">
-  <textarea id="descripcion" placeholder="Descripción"></textarea>
+  <form id="formActividad">
 
-  <label>Monitor</label>
-  <select id="monitor"></select>
+    <label>Nombre</label>
+    <input type="text" id="nombre" required>
 
-  <label>Material</label>
-  <select id="material"></select>
+    <label>Descripción</label>
+    <textarea id="descripcion"></textarea>
 
-  <label>Zona</label>
-  <select id="zona"></select>
+    <label>Día 1</label>
+    <input type="text" id="dia1">
 
-  <button id="btnGuardar">Guardar actividad</button>
+    <label>Día 2</label>
+    <input type="text" id="dia2">
+
+    <label>Material</label>
+    <select id="material_id">
+      <option value="">Sin material</option>
+    </select>
+
+    <label>Monitor</label>
+    <select id="monitor_id">
+      <option value="">Sin monitor</option>
+    </select>
+
+    <label>Zona</label>
+    <select id="zona_id">
+      <option value="">Sin zona</option>
+    </select>
+
+    <button type="submit" id="btnGuardar">Guardar</button>
+    <button type="button" id="btnCancelar">Cancelar</button>
+
+  </form>
 
 </div>
 
 <script type="module">
 import { supabase } from "../js/supabaseclientes.js";
 
-/* ================= SESIÓN ================= */
-const { data: { user } } = await supabase.auth.getUser();
-if (!user) location.href = "./login.html";
-
-/* ================= OBTENER ID SI VIENE ================= */
 const params = new URLSearchParams(window.location.search);
-const actividadId = params.get("id"); // null si es crear
+const actividadId = params.get("id");
+
+/* ================= NAVEGACIÓN ================= */
+async function navegar() {
+  const esInvitado = sessionStorage.getItem("invitado") === "true";
+
+  if (esInvitado) {
+    location.href = "invitado.html";
+    return;
+  }
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    location.href = "login.html";
+    return;
+  }
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  switch (profile?.role) {
+    case "admin": location.href = "admin.html"; break;
+    case "monitor": location.href = "monitor.html"; break;
+    case "familiar": location.href = "familiar.html"; break;
+    default: location.href = "login.html";
+  }
+}
+
+document.getElementById("btnVolver").onclick = navegar;
+document.getElementById("btnInicio").onclick = navegar;
 
 /* ================= CARGAR SELECTS ================= */
 async function cargarSelects() {
-  const selMonitor = document.getElementById("monitor");
-  const selMaterial = document.getElementById("material");
-  const selZona = document.getElementById("zona");
 
-  // Monitores
+  // MATERIALES
+  const { data: materiales } = await supabase
+    .from("materiales")
+    .select("id, nombre")
+    .order("nombre");
+
+  const selMat = document.getElementById("material_id");
+  materiales?.forEach(m => {
+    selMat.innerHTML += `<option value="${m.id}">${m.nombre}</option>`;
+  });
+
+  // MONITORES (VIENEN DE profiles)
   const { data: monitores } = await supabase
     .from("profiles")
     .select("id, nombre, apellidos")
-    .eq("role", "monitor");
+    .eq("role", "monitor")
+    .order("nombre");
 
-  selMonitor.innerHTML = monitores
-    .map(m => `<option value="${m.id}">${m.nombre} ${m.apellidos}</option>`)
-    .join("");
+  const selMon = document.getElementById("monitor_id");
+  monitores?.forEach(m => {
+    selMon.innerHTML += `<option value="${m.id}">${m.nombre} ${m.apellidos || ""}</option>`;
+  });
 
-  // Materiales
-  const { data: materiales } = await supabase
-    .from("materiales")
-    .select("*");
-
-  selMaterial.innerHTML = materiales
-    .map(m => `<option value="${m.id}">${m.nombre}</option>`)
-    .join("");
-
-  // Zonas
+  // ZONAS
   const { data: zonas } = await supabase
     .from("zonas")
-    .select("*");
+    .select("id, nombre")
+    .order("nombre");
 
-  selZona.innerHTML = zonas
-    .map(z => `<option value="${z.id}">${z.nombre}</option>`)
-    .join("");
+  const selZona = document.getElementById("zona_id");
+  zonas?.forEach(z => {
+    selZona.innerHTML += `<option value="${z.id}">${z.nombre}</option>`;
+  });
 }
 
-/* ================= CARGAR DATOS SI ES EDICIÓN ================= */
+/* ================= CARGAR ACTIVIDAD ================= */
 async function cargarActividad() {
-  if (!actividadId) return; // es creación
+  if (!actividadId) return;
 
-  document.getElementById("titulo").textContent = "Modificar actividad";
-  document.getElementById("headerTitulo").textContent = "Modificar actividad";
-  document.getElementById("subtitulo").textContent = "Modificar actividad";
+  document.getElementById("tituloForm").textContent = "Modificar actividad";
 
-  const { data, error } = await supabase
+  const { data: a } = await supabase
     .from("actividades")
     .select("*")
     .eq("id", actividadId)
     .maybeSingle();
 
-  if (error || !data) {
-    alert("Error cargando actividad");
-    return;
-  }
+  if (!a) return;
 
-  // Rellenar campos
-  document.getElementById("nombre").value = data.nombre;
-  document.getElementById("dia1").value = data.dia1;
-  document.getElementById("dia2").value = data.dia2 || "";
-  document.getElementById("descripcion").value = data.descripcion;
-
-  document.getElementById("monitor").value = data.monitor_id;
-  document.getElementById("material").value = data.material_id;
-  document.getElementById("zona").value = data.zona_id;
+  document.getElementById("nombre").value = a.nombre || "";
+  document.getElementById("descripcion").value = a.descripcion || "";
+  document.getElementById("dia1").value = a.dia1 || "";
+  document.getElementById("dia2").value = a.dia2 || "";
+  document.getElementById("material_id").value = a.material_id || "";
+  document.getElementById("monitor_id").value = a.monitor_id || "";
+  document.getElementById("zona_id").value = a.zona_id || "";
 }
 
 /* ================= GUARDAR ================= */
-document.getElementById("btnGuardar").onclick = async () => {
-  const payload = {
-    nombre: document.getElementById("nombre").value.trim(),
-    dia1: document.getElementById("dia1").value.trim(),
-    dia2: document.getElementById("dia2").value.trim(),
-    descripcion: document.getElementById("descripcion").value.trim(),
-    monitor_id: document.getElementById("monitor").value,
-    material_id: document.getElementById("material").value,
-    zona_id: document.getElementById("zona").value
+document.getElementById("formActividad").onsubmit = async (e) => {
+  e.preventDefault();
+
+  const datos = {
+    nombre: document.getElementById("nombre").value,
+    descripcion: document.getElementById("descripcion").value,
+    dia1: document.getElementById("dia1").value,
+    dia2: document.getElementById("dia2").value,
+    material_id: document.getElementById("material_id").value || null,
+    monitor_id: document.getElementById("monitor_id").value || null,
+    zona_id: document.getElementById("zona_id").value || null
   };
 
-  if (!payload.nombre || !payload.dia1 || !payload.descripcion) {
-    alert("Rellena los campos obligatorios");
-    return;
-  }
-
-  let error;
+  let res;
 
   if (actividadId) {
-    // MODO EDITAR
-    ({ error } = await supabase
+    res = await supabase
       .from("actividades")
-      .update(payload)
-      .eq("id", actividadId));
+      .update(datos)
+      .eq("id", actividadId);
   } else {
-    // MODO CREAR
-    ({ error } = await supabase
+    res = await supabase
       .from("actividades")
-      .insert(payload));
+      .insert(datos);
   }
 
-  if (error) {
-    alert("Error guardando actividad");
-    console.error(error);
+  if (res.error) {
+    alert("Error: " + res.error.message);
     return;
   }
 
-  alert("Actividad guardada correctamente");
-  location.href = "./actividades.html";
+  location.href = "actividades.html";
 };
 
-/* ================= INIT ================= */
+/* ================= CANCELAR ================= */
+document.getElementById("btnCancelar").onclick = () => {
+  location.href = "actividades.html";
+};
+
+/* ================= INICIO ================= */
 await cargarSelects();
 await cargarActividad();
+
 </script>
 
 </body>
