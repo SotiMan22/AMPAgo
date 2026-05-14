@@ -2,60 +2,35 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Tablón de anuncios - AMPAgo</title>
+  <title>Panel del monitor - AMPAgo</title>
   <link rel="stylesheet" href="../style.css">
 
   <style>
-    .nav-container {
-      margin: 10px 0 20px 0;
-    }
-    .nav-btn {
-      background: #eee;
-      border: 1px solid #ccc;
-      padding: 6px 12px;
-      margin-right: 10px;
-      cursor: pointer;
-      border-radius: 4px;
-    }
-
-    .anuncio {
-      background: white;
-      padding: 15px;
-      margin-bottom: 15px;
-      border-radius: 6px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    }
-
-    #btnCrear {
+    .btn {
       background-color: #c62828;
       color: white;
       border: none;
-      padding: 10px 15px;
+      padding: 12px 18px;
+      margin: 10px 0;
+      width: 100%;
       border-radius: 6px;
       cursor: pointer;
-      margin-bottom: 20px;
-      display:none;
+      font-size: 16px;
     }
   </style>
 </head>
 
 <body>
 
-<header>Tablón de anuncios</header>
+<header>Panel del monitor</header>
 
 <div class="container">
 
-  <!-- Navegación universal -->
-  <div class="nav-container">
-    <button id="btnVolver" class="nav-btn">Volver</button>
-    <button id="btnInicio" class="nav-btn">Inicio</button>
-  </div>
+  <button id="btnMisActividades" class="btn">Mis actividades</button>
+  <button id="btnActividades" class="btn">Actividades</button>
+  <button id="btnAnuncios" class="btn">Tablón de anuncios</button>
 
-  <h2>Anuncios</h2>
-
-  <button id="btnCrear">Crear anuncio</button>
-
-  <div id="listaAnuncios">Cargando anuncios...</div>
+  <button id="btnLogout" class="btn" style="background:#555;">Cerrar sesión</button>
 
 </div>
 
@@ -66,100 +41,47 @@ import { supabase } from "../js/supabaseclientes.js";
 const esInvitado = localStorage.getItem("invitado") === "true";
 const { data: { user } } = await supabase.auth.getUser();
 
-/* Invitado NO puede entrar */
 if (esInvitado) {
-  alert("Los invitados no pueden acceder al tablón");
+  alert("Los invitados no pueden acceder");
   location.href = "./invitado.html";
   return;
 }
 
-/* Si no hay usuario → login */
 if (!user) {
   location.href = "./login.html";
   return;
 }
 
-/* ================= PERMISOS ================= */
-let role = null;
-
+/* ================= VERIFICAR ROL ================= */
 const { data: profile } = await supabase
   .from("profiles")
   .select("role")
   .eq("id", user.id)
   .maybeSingle();
 
-role = profile?.role;
-
-/* Admin y monitor pueden crear */
-if (role === "admin" || role === "monitor") {
-  document.getElementById("btnCrear").style.display = "inline-block";
+if (profile?.role !== "monitor") {
+  alert("Acceso restringido a monitores");
+  location.href = "./login.html";
+  return;
 }
 
-/* ================= NAVEGACIÓN UNIVERSAL ================= */
-async function navegar() {
-  const esInvitado = localStorage.getItem("invitado") === "true";
+/* ================= BOTONES ================= */
+document.getElementById("btnMisActividades").onclick = () => {
+  location.href = "./mis-actividades.html";
+};
 
-  if (esInvitado) {
-    location.href = "./invitado.html";
-    return;
-  }
+document.getElementById("btnActividades").onclick = () => {
+  location.href = "./actividades.html";
+};
 
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
-    location.href = "./login.html";
-    return;
-  }
+document.getElementById("btnAnuncios").onclick = () => {
+  location.href = "./anuncios.html";
+};
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .maybeSingle();
-
-  switch (profile?.role) {
-    case "admin": location.href = "./admin.html"; break;
-    case "monitor": location.href = "./monitor.html"; break;
-    case "familiar": location.href = "./familiar.html"; break;
-    default: location.href = "./login.html";
-  }
-}
-
-document.getElementById("btnVolver").onclick = navegar;
-document.getElementById("btnInicio").onclick = navegar;
-
-/* ================= CARGAR ANUNCIOS ================= */
-async function cargarAnuncios() {
-  const { data, error } = await supabase
-    .from("anuncios")
-    .select("*")
-    .order("fecha", { ascending: false });
-
-  const cont = document.getElementById("listaAnuncios");
-
-  if (error) {
-    cont.textContent = "Error cargando anuncios";
-    return;
-  }
-
-  if (!data.length) {
-    cont.textContent = "No hay anuncios";
-    return;
-  }
-
-  cont.innerHTML = data.map(a => `
-    <div class="anuncio">
-      <h3>${a.titulo}</h3>
-      <p>${a.mensaje}</p>
-      <small>${new Date(a.fecha).toLocaleString()}</small>
-    </div>
-  `).join("");
-}
-
-cargarAnuncios();
-
-/* ================= BOTÓN CREAR ================= */
-document.getElementById("btnCrear").onclick = () => {
-  location.href = "./anuncios-form.html";
+document.getElementById("btnLogout").onclick = async () => {
+  await supabase.auth.signOut();
+  localStorage.removeItem("invitado");
+  location.href = "./login.html";
 };
 </script>
 
