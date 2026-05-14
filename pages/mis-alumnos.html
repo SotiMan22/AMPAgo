@@ -51,7 +51,7 @@
 
 <div class="container">
 
-  <!-- Navegación universal -->
+  <!-- 🔥 BOTONES QUE PEDISTE -->
   <div class="nav-container">
     <button id="btnVolver" class="nav-btn">Volver</button>
     <button id="btnInicio" class="nav-btn">Inicio</button>
@@ -73,7 +73,7 @@ const esInvitado = localStorage.getItem("invitado") === "true";
 const { data: { user } } = await supabase.auth.getUser();
 
 if (!user && !esInvitado) {
-  location.href = "./login.html";
+  location.href = "login.html";
 }
 
 /* ============================================================
@@ -92,7 +92,7 @@ if (!esInvitado) {
 
   if (!profile) {
     alert("No se pudo cargar el perfil");
-    location.href = "./login.html";
+    location.href = "login.html";
   }
 }
 
@@ -101,7 +101,7 @@ if (!esInvitado) {
 ============================================================ */
 if (!esInvitado && profile.role !== "monitor") {
   alert("Solo los monitores pueden acceder");
-  location.href = "./login.html";
+  location.href = "login.html";
 }
 
 /* ============================================================
@@ -138,21 +138,21 @@ document.addEventListener("click", (e) => {
 document.getElementById("logoutBtn").onclick = async () => {
   await supabase.auth.signOut();
   localStorage.removeItem("invitado");
-  location.href = "./login.html";
+  location.href = "login.html";
 };
 
 /* ============================================================
    7. NAVEGACIÓN UNIVERSAL
 ============================================================ */
 document.getElementById("btnVolver").onclick = () => {
-  location.href = "./mis-actividades.html";
+  location.href = "mis-actividades.html";
 };
 
 document.getElementById("btnInicio").onclick = async () => {
   await supabase.auth.signOut();
   localStorage.removeItem("invitado");
   sessionStorage.removeItem("invitado");
-  location.href = "./login.html";
+  location.href = "login.html";
 };
 
 /* ============================================================
@@ -171,7 +171,7 @@ const actividad_id = params.get("id");
 
 if (!actividad_id) {
   alert("Falta el ID de la actividad");
-  location.href = "./mis-actividades.html";
+  location.href = "mis-actividades.html";
 }
 
 /* ============================================================
@@ -186,7 +186,7 @@ if (!esInvitado) {
 
   if (!actividad || actividad.monitor_id !== user.id) {
     alert("No tienes permiso para ver esta actividad");
-    location.href = "./mis-actividades.html";
+    location.href = "mis-actividades.html";
   }
 
   document.getElementById("titulo").textContent = actividad.nombre;
