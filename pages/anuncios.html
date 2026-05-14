@@ -91,7 +91,13 @@ async function navegar() {
 }
 
 document.getElementById("btnVolver").onclick = navegar;
-document.getElementById("btnInicio").onclick = navegar;
+
+/* 🔥 INICIO CIERRA SESIÓN SIEMPRE */
+document.getElementById("btnInicio").onclick = async () => {
+  await supabase.auth.signOut();
+  localStorage.removeItem("invitado");
+  location.href = "./login.html";
+};
 
 /* ================= SESIÓN ================= */
 const { data: { user } } = await supabase.auth.getUser();
