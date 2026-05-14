@@ -94,11 +94,12 @@ const { data: profile, error } = await supabase
 
 /* Error REAL → expulsar */
 if (error) {
+  console.error(error);
   alert("Error cargando perfil");
   location.href = "./login.html";
 }
 
-/* Rol seguro */
+/* Rol seguro (aunque profile tarde en llegar) */
 const role = (profile?.role ?? "").trim().toLowerCase();
 
 /* SOLO expulsar si el rol REAL es incorrecto */
