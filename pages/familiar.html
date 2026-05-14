@@ -12,7 +12,6 @@
   Panel Familiar
 
   <div class="profile-menu">
-    <!-- FOTO FIJA COMO EN ADMIN -->
     <img src="../imagenes/familiar.png" class="profile-icon" id="profileToggle">
 
     <div class="profile-dropdown" id="profileDropdown">
@@ -59,15 +58,21 @@ const { data: profile, error } = await supabase
   .eq("id", user.id)
   .maybeSingle();
 
-if (error || !profile) {
+/* SI HAY ERROR REAL → EXPULSAR */
+if (error) {
   alert("No se pudo cargar el perfil");
   location.href = "./login.html";
 }
 
 /* ============================================================
-   CONTROL DE ACCESO
+   CONTROL DE ACCESO — CORREGIDO
 ============================================================ */
-if (profile.role !== "familiar") {
+const role = profile?.role ?? "";
+
+// Si aún no ha cargado → NO expulsar
+if (!role) {
+  console.log("Esperando a que cargue el rol...");
+} else if (role !== "familiar") {
   alert("Acceso restringido a familiares");
   location.href = "./login.html";
 }
