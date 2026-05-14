@@ -118,7 +118,14 @@ async function navegar() {
 }
 
 document.getElementById("btnVolver").onclick = navegar;
-document.getElementById("btnInicio").onclick = navegar;
+
+/* 🔥 BOTÓN INICIO — CERRAR SESIÓN SIEMPRE */
+document.getElementById("btnInicio").onclick = async () => {
+  await supabase.auth.signOut();
+  sessionStorage.removeItem("invitado");
+  localStorage.removeItem("invitado");
+  location.href = "login.html";
+};
 
 /* ================= PERMISOS ================= */
 let puedeGestionar = false;
@@ -189,7 +196,7 @@ async function pintarTabla(lista) {
       if (data) nombreZona = data.nombre;
     }
 
-    // MONITOR (CORREGIDO: VIENE DE profiles)
+    // MONITOR
     let nombreMonitor = "Sin monitor";
     if (a.monitor_id) {
       const { data } = await supabase
