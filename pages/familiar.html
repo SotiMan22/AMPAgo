@@ -24,13 +24,11 @@
 
 <div class="container">
 
-  <h2>Bienvenido</h2>
+  <!-- AHORA EL NOMBRE SE PONE AQUÍ -->
+  <h2 id="bienvenida"></h2>
 
   <button onclick="location.href='./mis-hijos.html'">Mis hijos</button>
-
-  <!-- ESTA ES LA LÍNEA CORREGIDA -->
   <button onclick="location.href='./actividades-familiar.html'">Actividades disponibles</button>
-
   <button onclick="location.href='./anuncios.html'">Tablón de anuncios</button>
 
 </div>
@@ -53,38 +51,35 @@ const { data: { user } } = await supabase.auth.getUser();
 if (!user) location.href = "./login.html";
 
 /* ============================================================
-   PERFIL — SOLO COLUMNAS QUE EXISTEN
+   PERFIL — AHORA CARGA NOMBRE Y APELLIDOS
 ============================================================ */
 const { data: profile, error } = await supabase
   .from("profiles")
-  .select("role")
+  .select("role, nombre, apellidos")
   .eq("id", user.id)
   .maybeSingle();
 
-/* SI HAY ERROR REAL → EXPULSAR */
-if (error) {
+if (error || !profile) {
   alert("No se pudo cargar el perfil");
   location.href = "./login.html";
 }
 
 /* ============================================================
-   CONTROL DE ACCESO — CORREGIDO
+   CONTROL DE ACCESO
 ============================================================ */
-const role = profile?.role ?? "";
-
-// Si aún no ha cargado → NO expulsar
-if (!role) {
-  console.log("Esperando a que cargue el rol...");
-} else if (role !== "familiar") {
+if (profile.role !== "familiar") {
   alert("Acceso restringido a familiares");
   location.href = "./login.html";
 }
 
 /* ============================================================
-   UI PERFIL
+   UI PERFIL + NOMBRE
 ============================================================ */
 document.getElementById("profileEmail").textContent = user.email || "";
 document.getElementById("profileRole").textContent = "Rol: familiar";
+
+document.getElementById("bienvenida").textContent =
+  `Bienvenido, ${profile.nombre} ${profile.apellidos}`;
 
 /* ============================================================
    MENÚ PERFIL
