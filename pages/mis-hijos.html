@@ -13,25 +13,7 @@
       border-radius: 8px;
       border: 1px solid #ddd;
     }
-
-    /* ❌ ELIMINADO: .card button azul */
-    /* ❌ ELIMINADO: #btnNuevo verde */
-    /* ❌ ELIMINADO: .nav-btn gris */
-
-    /* 🔥 NUEVO: TODOS LOS BOTONES USAN EL ESTILO GLOBAL DEL ADMIN */
-    .btn-admin {
-      background: #c62828;
-      color: #ffeb3b;
-      padding: 12px 20px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 18px;
-      width: 100%;
-      margin-top: 10px;
-      display: block;
-      text-align: center;
-    }
+    /* ❌ Nada de estilos para button aquí */
   </style>
 </head>
 
@@ -53,14 +35,13 @@
 
 <div class="container">
 
-  <!-- 🔥 BOTONES ROJOS IGUALES QUE ADMIN -->
-  <button id="btnVolver" class="btn-admin">Volver</button>
-  <button id="btnInicio" class="btn-admin">Inicio</button>
+  <!-- Botones sin clase, igual que en admin -->
+  <button id="btnVolver">Volver</button>
+  <button id="btnInicio">Inicio</button>
 
   <h2>Mis hijos</h2>
 
-  <!-- 🔥 BOTÓN AÑADIR HIJO IGUAL QUE ADMIN -->
-  <button id="btnNuevo" class="btn-admin">Añadir hijo</button>
+  <button id="btnNuevo">Añadir hijo</button>
 
   <div id="lista"></div>
 
@@ -73,7 +54,7 @@ import { supabase } from "../js/supabaseclientes.js";
 const { data: { user } } = await supabase.auth.getUser();
 if (!user) location.href = "./login.html";
 
-/* PERFIL */
+/* PERFIL (con avatar_url) */
 const { data: profile } = await supabase
   .from("profiles")
   .select("role, avatar_url")
@@ -143,8 +124,8 @@ async function cargarHijos() {
       <p><strong>Curso:</strong> ${h.curso || "—"}</p>
       <p><strong>Nacimiento:</strong> ${h.fecha_nacimiento || "—"}</p>
 
-      <!-- 🔥 BOTÓN EDITAR IGUAL QUE ADMIN -->
-      <button class="btn-admin" onclick="location.href='./mis-hijos-form.html?id=${h.id}'">Editar</button>
+      <!-- Botón sin clase, igual que admin -->
+      <button onclick="location.href='./mis-hijos-form.html?id=${h.id}'">Editar</button>
     </div>
   `).join("");
 }
