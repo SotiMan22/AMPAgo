@@ -6,17 +6,17 @@
   <link rel="stylesheet" href="../style.css">
 
   <style>
-    .nav-container {
-      margin: 10px 0 20px 0;
-    }
-    .nav-btn {
-      background: #eee;
-      border: 1px solid #ccc;
-      padding: 6px 12px;
-      margin-right: 10px;
+    /* Botones iguales que admin */
+    .btn-rojo {
+      background: #c62828;
+      color: yellow;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 6px;
       cursor: pointer;
-      border-radius: 4px;
-      font-size: 14px;
+      font-size: 18px;
+      width: 100%;
+      margin-top: 10px;
     }
 
     .form-container {
@@ -36,7 +36,7 @@
       border: 1px solid #ccc;
     }
 
-    /* SOLO el botón de registrar es grande y azul */
+    /* Botón registrar azul */
     .btn-registrar {
       width: 100%;
       margin-top: 15px;
@@ -57,11 +57,9 @@
 
 <div class="container">
 
-  <!-- Navegación universal -->
-  <div class="nav-container">
-    <button id="btnVolver" class="nav-btn">Volver</button>
-    <button id="btnInicio" class="nav-btn">Inicio</button>
-  </div>
+  <!-- 🔥 BOTONES ROJOS COMO EN ADMIN -->
+  <button id="btnVolver" class="btn-rojo">Volver</button>
+  <button id="btnInicio" class="btn-rojo">Inicio</button>
 
   <div class="form-container">
 
@@ -81,23 +79,23 @@
 <script type="module">
 import { supabase } from "../js/supabaseclientes.js";
 
-/* 1. BOTÓN VOLVER → PÁGINA ANTERIOR */
+/* BOTÓN VOLVER → PÁGINA ANTERIOR */
 document.getElementById("btnVolver").onclick = () => {
   history.back();
 };
 
-/* 2. BOTÓN INICIO → LOGIN (no hay sesión aún) */
+/* BOTÓN INICIO → LOGIN */
 document.getElementById("btnInicio").onclick = () => {
   location.href = "./login.html";
 };
 
-/* 3. BLOQUEAR RETROCESO (mantengo lo tuyo) */
+/* BLOQUEAR RETROCESO */
 history.pushState(null, null, location.href);
 window.onpopstate = function () {
   history.go(1);
 };
 
-/* 4. REGISTRO */
+/* REGISTRO */
 document.getElementById("btnRegistrar").onclick = async () => {
 
   const nombre = document.getElementById("nombre").value.trim();
@@ -110,49 +108,29 @@ document.getElementById("btnRegistrar").onclick = async () => {
     return;
   }
 
-  if (!email.includes("@")) {
-    alert("Correo inválido");
-    return;
-  }
-
   const btn = document.getElementById("btnRegistrar");
   btn.disabled = true;
   btn.textContent = "Creando cuenta...";
 
   try {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password
-    });
-
+    const { data, error } = await supabase.auth.signUp({ email, password });
     if (error) throw error;
 
     const user = data.user;
 
-    if (!user) {
-      alert("Revisa tu correo para confirmar la cuenta");
-      return;
-    }
-
-    const { error: profileError } = await supabase
-      .from("profiles")
-      .insert([{
-        id: user.id,
-        email: email,
-        nombre: nombre,
-        apellidos: apellidos,
-        role: "familiar"
-      }]);
-
-    if (profileError) throw profileError;
+    await supabase.from("profiles").insert([{
+      id: user.id,
+      email,
+      nombre,
+      apellidos,
+      role: "familiar"
+    }]);
 
     alert("Cuenta creada correctamente");
-
     localStorage.removeItem("invitado");
     location.href = "./login.html";
 
   } catch (e) {
-    console.error(e);
     alert("Error: " + e.message);
   } finally {
     btn.disabled = false;
