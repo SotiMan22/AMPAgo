@@ -6,17 +6,17 @@
   <link rel="stylesheet" href="../style.css">
 
   <style>
-    /* Botón azul solo para registrar */
-    .btn-registrar {
-      background: #1976d2 !important;
-      color: white !important;
-      font-size: 18px;
+    /* Botón rojo igual que admin */
+    .btn-rojo {
+      background: #c62828;
+      color: yellow;
       padding: 12px 20px;
-      border-radius: 6px;
-      width: 100%;
-      margin-top: 15px;
       border: none;
+      border-radius: 6px;
       cursor: pointer;
+      font-size: 18px;
+      width: 100%;
+      margin-top: 10px;
     }
 
     .form-container {
@@ -35,6 +35,19 @@
       border-radius: 6px;
       border: 1px solid #ccc;
     }
+
+    /* Botón registrar azul */
+    .btn-registrar {
+      width: 100%;
+      margin-top: 15px;
+      padding: 10px;
+      background: #1976d2;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+    }
   </style>
 </head>
 
@@ -44,9 +57,8 @@
 
 <div class="container">
 
-  <!-- 🔥 BOTONES ROJOS IGUALES QUE EN ADMIN -->
-  <button id="btnVolver">Volver</button>
-  <button id="btnInicio">Inicio</button>
+  <!-- 🔥 SOLO BOTÓN INICIO (estilo admin) -->
+  <button id="btnInicio" class="btn-rojo">Inicio</button>
 
   <div class="form-container">
 
@@ -66,23 +78,24 @@
 <script type="module">
 import { supabase } from "../js/supabaseclientes.js";
 
-/* VOLVER → PÁGINA ANTERIOR */
-document.getElementById("btnVolver").onclick = () => {
-  history.back();
-};
-
-/* INICIO → LOGIN */
+/* ============================================================
+   BOTÓN INICIO → LOGIN
+============================================================ */
 document.getElementById("btnInicio").onclick = () => {
   location.href = "./login.html";
 };
 
-/* BLOQUEAR RETROCESO */
+/* ============================================================
+   BLOQUEAR RETROCESO
+============================================================ */
 history.pushState(null, null, location.href);
 window.onpopstate = function () {
   history.go(1);
 };
 
-/* REGISTRO */
+/* ============================================================
+   REGISTRO
+============================================================ */
 document.getElementById("btnRegistrar").onclick = async () => {
 
   const nombre = document.getElementById("nombre").value.trim();
@@ -114,6 +127,7 @@ document.getElementById("btnRegistrar").onclick = async () => {
     }]);
 
     alert("Cuenta creada correctamente");
+
     localStorage.removeItem("invitado");
     location.href = "./login.html";
 
