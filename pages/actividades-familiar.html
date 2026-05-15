@@ -8,15 +8,9 @@
   <style>
     .seleccionada { background-color: #d0ebff !important; }
     #tablaActividades tr { cursor: pointer; }
+
+    /* ❌ Quitamos estilos que cambian botones */
     .nav-container { margin: 10px 0 20px 0; }
-    .nav-btn {
-      background: #eee;
-      border: 1px solid #ccc;
-      padding: 6px 12px;
-      margin-right: 10px;
-      cursor: pointer;
-      border-radius: 4px;
-    }
   </style>
 </head>
 
@@ -26,16 +20,15 @@
 
 <div class="container">
 
-  <div class="nav-container">
-    <button id="btnVolver" class="nav-btn">Volver</button>
-    <button id="btnInicio" class="nav-btn">Inicio</button>
-  </div>
+  <!-- 🔥 BOTONES IGUALES QUE ADMIN (SIN CLASES) -->
+  <button id="btnVolver">Volver</button>
+  <button id="btnInicio">Inicio</button>
 
   <h2>Lista de actividades</h2>
 
   <input id="buscador" type="text" placeholder="Buscar actividad...">
 
-  <!-- Controles solo para admin/monitor -->
+  <!-- 🔥 CONTROLES ADMIN/MONITOR IGUALES QUE ADMIN -->
   <div id="adminControls" style="display:none; margin-top:10px;">
     <button id="btnCrear">Crear actividad</button>
     <button id="btnModificar" disabled>Modificar</button>
@@ -62,7 +55,7 @@
 
 </div>
 
-<!-- MODAL -->
+<!-- 🔥 MODAL CON BOTONES IGUALES QUE ADMIN -->
 <div id="modalEliminar" class="modal" style="display:none;">
   <div class="modal-content">
     <h3>Confirmar eliminación</h3>
@@ -81,10 +74,7 @@ let seleccionada = null;
 const esInvitado = localStorage.getItem("invitado") === "true";
 const { data: { user } } = await supabase.auth.getUser();
 
-/* Invitado permitido */
-if (!user && !esInvitado) {
-  location.href = "login.html";
-}
+if (!user && !esInvitado) location.href = "login.html";
 
 /* ================= NAVEGACIÓN ================= */
 document.getElementById("btnVolver").onclick = () => {
