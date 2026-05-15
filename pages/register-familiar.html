@@ -16,7 +16,7 @@
       margin-right: 10px;
       cursor: pointer;
       border-radius: 4px;
-      font-size: 16px;
+      font-size: 14px;
     }
 
     .form-container {
@@ -36,7 +36,8 @@
       border: 1px solid #ccc;
     }
 
-    button {
+    /* SOLO el botón de registrar es grande y azul */
+    .btn-registrar {
       width: 100%;
       margin-top: 15px;
       padding: 10px;
@@ -56,7 +57,7 @@
 
 <div class="container">
 
-  <!-- 🔥 BOTONES UNIFICADOS -->
+  <!-- Navegación universal -->
   <div class="nav-container">
     <button id="btnVolver" class="nav-btn">Volver</button>
     <button id="btnInicio" class="nav-btn">Inicio</button>
@@ -71,7 +72,7 @@
     <input id="email" type="email" placeholder="Correo electrónico">
     <input id="password" type="password" placeholder="Contraseña">
 
-    <button id="btnRegistrar">Registrarse</button>
+    <button id="btnRegistrar" class="btn-registrar">Registrarse</button>
 
   </div>
 
@@ -80,34 +81,23 @@
 <script type="module">
 import { supabase } from "../js/supabaseclientes.js";
 
-/* ============================================================
-   1. BOTÓN VOLVER → PÁGINA ANTERIOR REAL
-============================================================ */
+/* 1. BOTÓN VOLVER → PÁGINA ANTERIOR */
 document.getElementById("btnVolver").onclick = () => {
   history.back();
 };
 
-/* ============================================================
-   2. BOTÓN INICIO — CERRAR SESIÓN SIEMPRE
-============================================================ */
-document.getElementById("btnInicio").onclick = async () => {
-  await supabase.auth.signOut();
-  localStorage.removeItem("invitado");
-  sessionStorage.removeItem("invitado");
+/* 2. BOTÓN INICIO → LOGIN (no hay sesión aún) */
+document.getElementById("btnInicio").onclick = () => {
   location.href = "./login.html";
 };
 
-/* ============================================================
-   3. BLOQUEAR RETROCESO
-============================================================ */
+/* 3. BLOQUEAR RETROCESO (mantengo lo tuyo) */
 history.pushState(null, null, location.href);
 window.onpopstate = function () {
   history.go(1);
 };
 
-/* ============================================================
-   4. REGISTRO
-============================================================ */
+/* 4. REGISTRO */
 document.getElementById("btnRegistrar").onclick = async () => {
 
   const nombre = document.getElementById("nombre").value.trim();
@@ -130,7 +120,6 @@ document.getElementById("btnRegistrar").onclick = async () => {
   btn.textContent = "Creando cuenta...";
 
   try {
-
     const { data, error } = await supabase.auth.signUp({
       email,
       password
