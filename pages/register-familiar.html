@@ -6,17 +6,19 @@
   <link rel="stylesheet" href="../style.css">
 
   <style>
-    /* Botón registrar azul (único diferente) */
-    .btn-registrar {
-      background: #1976d2;
-      color: white;
+    /* Botón panel (mismo estilo que admin/monitor) */
+    .btn-panel {
+      background: #c62828;      /* rojo panel */
+      color: #ffeb3b;           /* amarillo panel */
       padding: 12px 20px;
       border: none;
       border-radius: 6px;
       cursor: pointer;
       font-size: 18px;
       width: 100%;
-      margin-top: 15px;
+      margin: 10px 0 20px 0;
+      display: block;
+      text-align: center;
     }
 
     .form-container {
@@ -35,6 +37,19 @@
       border-radius: 6px;
       border: 1px solid #ccc;
     }
+
+    /* Botón registrar azul */
+    .btn-registrar {
+      width: 100%;
+      margin-top: 15px;
+      padding: 10px;
+      background: #1976d2;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+    }
   </style>
 </head>
 
@@ -44,8 +59,8 @@
 
 <div class="container">
 
-  <!-- 🔥 BOTÓN INICIO — MISMO TAMAÑO QUE ADMIN -->
-  <button id="btnInicio">Inicio</button>
+  <!-- 🔥 BOTÓN INICIO IGUAL QUE LOS DEL PANEL -->
+  <button id="btnInicio" class="btn-panel">Inicio</button>
 
   <div class="form-container">
 
