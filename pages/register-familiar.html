@@ -6,17 +6,17 @@
   <link rel="stylesheet" href="../style.css">
 
   <style>
-    /* Botones iguales que admin */
-    .btn-rojo {
-      background: #c62828;
-      color: yellow;
-      padding: 12px 20px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
+    /* Botón azul solo para registrar */
+    .btn-registrar {
+      background: #1976d2 !important;
+      color: white !important;
       font-size: 18px;
+      padding: 12px 20px;
+      border-radius: 6px;
       width: 100%;
-      margin-top: 10px;
+      margin-top: 15px;
+      border: none;
+      cursor: pointer;
     }
 
     .form-container {
@@ -35,19 +35,6 @@
       border-radius: 6px;
       border: 1px solid #ccc;
     }
-
-    /* Botón registrar azul */
-    .btn-registrar {
-      width: 100%;
-      margin-top: 15px;
-      padding: 10px;
-      background: #1976d2;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 16px;
-    }
   </style>
 </head>
 
@@ -57,9 +44,9 @@
 
 <div class="container">
 
-  <!-- 🔥 BOTONES ROJOS COMO EN ADMIN -->
-  <button id="btnVolver" class="btn-rojo">Volver</button>
-  <button id="btnInicio" class="btn-rojo">Inicio</button>
+  <!-- 🔥 BOTONES ROJOS IGUALES QUE EN ADMIN -->
+  <button id="btnVolver">Volver</button>
+  <button id="btnInicio">Inicio</button>
 
   <div class="form-container">
 
@@ -79,12 +66,12 @@
 <script type="module">
 import { supabase } from "../js/supabaseclientes.js";
 
-/* BOTÓN VOLVER → PÁGINA ANTERIOR */
+/* VOLVER → PÁGINA ANTERIOR */
 document.getElementById("btnVolver").onclick = () => {
   history.back();
 };
 
-/* BOTÓN INICIO → LOGIN */
+/* INICIO → LOGIN */
 document.getElementById("btnInicio").onclick = () => {
   location.href = "./login.html";
 };
