@@ -6,15 +6,9 @@
   <link rel="stylesheet" href="../style.css">
 
   <style>
-    .seleccionada {
-      background-color: #d0ebff !important;
-    }
-    #tablaActividades tr {
-      cursor: pointer;
-    }
-    .nav-container {
-      margin: 10px 0 20px 0;
-    }
+    .seleccionada { background-color: #d0ebff !important; }
+    #tablaActividades tr { cursor: pointer; }
+    .nav-container { margin: 10px 0 20px 0; }
     .nav-btn {
       background: #eee;
       border: 1px solid #ccc;
@@ -94,14 +88,10 @@ if (!user && !esInvitado) {
 
 /* ================= NAVEGACIÓN ================= */
 document.getElementById("btnVolver").onclick = () => {
-  if (esInvitado) {
-    location.href = "invitado.html";
-  } else {
-    location.href = "familiar.html";
-  }
+  if (esInvitado) location.href = "invitado.html";
+  else location.href = "familiar.html";
 };
 
-/* 🔥 BOTÓN INICIO — CERRAR SESIÓN SIEMPRE */
 document.getElementById("btnInicio").onclick = async () => {
   await supabase.auth.signOut();
   localStorage.removeItem("invitado");
@@ -122,7 +112,6 @@ if (user && !esInvitado) {
   puedeGestionar = perfilData?.role === "admin" || perfilData?.role === "monitor";
 }
 
-/* Invitado y familiar NO pueden gestionar */
 if (puedeGestionar) {
   document.getElementById("adminControls").style.display = "block";
 }
@@ -157,7 +146,6 @@ async function pintarTabla(lista) {
 
   for (const a of lista) {
 
-    // MATERIAL
     let nombreMaterial = "Sin material";
     if (a.material_id) {
       const { data } = await supabase
@@ -168,7 +156,6 @@ async function pintarTabla(lista) {
       if (data) nombreMaterial = data.nombre;
     }
 
-    // ZONA
     let nombreZona = "Sin zona";
     if (a.zona_id) {
       const { data } = await supabase
@@ -179,7 +166,6 @@ async function pintarTabla(lista) {
       if (data) nombreZona = data.nombre;
     }
 
-    // MONITOR
     let nombreMonitor = "Sin monitor";
     if (a.monitor_id) {
       const { data } = await supabase
@@ -206,7 +192,6 @@ async function pintarTabla(lista) {
 
   tbody.innerHTML = html;
 
-  /* Invitado y familiar NO pueden seleccionar filas */
   if (!puedeGestionar) return;
 
   document.querySelectorAll("#tablaActividades tbody tr")
