@@ -6,21 +6,6 @@
   <link rel="stylesheet" href="../style.css">
 
   <style>
-    /* 🔥 ESTILO EXACTO DE LOS BOTONES DEL ADMIN */
-    .btn-admin {
-      background: #c62828;      /* rojo panel */
-      color: #ffeb3b;           /* amarillo panel */
-      padding: 12px 20px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 18px;
-      width: 100%;
-      margin-top: 10px;
-      display: block;
-      text-align: center;
-    }
-
     .form-container {
       background: white;
       padding: 20px;
@@ -46,8 +31,8 @@
 
 <div class="container">
 
-  <!-- 🔥 BOTÓN INICIO (estilo admin) -->
-  <button id="btnInicio" class="btn-admin">Inicio</button>
+  <!-- MISMO TIPO DE BOTÓN QUE EN ADMIN: SIN CLASE -->
+  <button id="btnInicio">Inicio</button>
 
   <div class="form-container">
 
@@ -58,8 +43,8 @@
     <input id="email" type="email" placeholder="Correo electrónico">
     <input id="password" type="password" placeholder="Contraseña">
 
-    <!-- 🔥 BOTÓN REGISTRARSE (estilo admin también) -->
-    <button id="btnRegistrar" class="btn-admin">Registrarse</button>
+    <!-- TAMBIÉN SIN CLASE, COMO EN ADMIN -->
+    <button id="btnRegistrar">Registrarse</button>
 
   </div>
 
@@ -68,20 +53,16 @@
 <script type="module">
 import { supabase } from "../js/supabaseclientes.js";
 
-/* BOTÓN INICIO → LOGIN */
 document.getElementById("btnInicio").onclick = () => {
   location.href = "./login.html";
 };
 
-/* BLOQUEAR RETROCESO */
 history.pushState(null, null, location.href);
 window.onpopstate = function () {
   history.go(1);
 };
 
-/* REGISTRO */
 document.getElementById("btnRegistrar").onclick = async () => {
-
   const nombre = document.getElementById("nombre").value.trim();
   const apellidos = document.getElementById("apellidos").value.trim();
   const email = document.getElementById("email").value.trim();
@@ -111,7 +92,6 @@ document.getElementById("btnRegistrar").onclick = async () => {
     }]);
 
     alert("Cuenta creada correctamente");
-
     localStorage.removeItem("invitado");
     location.href = "./login.html";
 
