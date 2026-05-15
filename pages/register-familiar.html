@@ -6,8 +6,8 @@
   <link rel="stylesheet" href="../style.css">
 
   <style>
-    /* Botón panel (mismo estilo que admin/monitor) */
-    .btn-panel {
+    /* 🔥 ESTILO EXACTO DE LOS BOTONES DEL ADMIN */
+    .btn-admin {
       background: #c62828;      /* rojo panel */
       color: #ffeb3b;           /* amarillo panel */
       padding: 12px 20px;
@@ -16,7 +16,7 @@
       cursor: pointer;
       font-size: 18px;
       width: 100%;
-      margin: 10px 0 20px 0;
+      margin-top: 10px;
       display: block;
       text-align: center;
     }
@@ -37,19 +37,6 @@
       border-radius: 6px;
       border: 1px solid #ccc;
     }
-
-    /* Botón registrar azul */
-    .btn-registrar {
-      width: 100%;
-      margin-top: 15px;
-      padding: 10px;
-      background: #1976d2;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 16px;
-    }
   </style>
 </head>
 
@@ -59,8 +46,8 @@
 
 <div class="container">
 
-  <!-- 🔥 BOTÓN INICIO IGUAL QUE LOS DEL PANEL -->
-  <button id="btnInicio" class="btn-panel">Inicio</button>
+  <!-- 🔥 BOTÓN INICIO (estilo admin) -->
+  <button id="btnInicio" class="btn-admin">Inicio</button>
 
   <div class="form-container">
 
@@ -71,7 +58,8 @@
     <input id="email" type="email" placeholder="Correo electrónico">
     <input id="password" type="password" placeholder="Contraseña">
 
-    <button id="btnRegistrar" class="btn-registrar">Registrarse</button>
+    <!-- 🔥 BOTÓN REGISTRARSE (estilo admin también) -->
+    <button id="btnRegistrar" class="btn-admin">Registrarse</button>
 
   </div>
 
