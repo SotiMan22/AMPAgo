@@ -13,7 +13,8 @@
       border-radius: 8px;
       border: 1px solid #ddd;
     }
-    /* ❌ Nada de estilos para button aquí */
+
+    /* ❌ IMPORTANTE: NO DEFINIMOS NINGÚN ESTILO PARA BUTTON */
   </style>
 </head>
 
@@ -35,12 +36,13 @@
 
 <div class="container">
 
-  <!-- Botones sin clase, igual que en admin -->
+  <!-- 🔥 BOTONES IGUALES QUE ADMIN (SIN CLASES) -->
   <button id="btnVolver">Volver</button>
   <button id="btnInicio">Inicio</button>
 
   <h2>Mis hijos</h2>
 
+  <!-- 🔥 TAMBIÉN SIN CLASE -->
   <button id="btnNuevo">Añadir hijo</button>
 
   <div id="lista"></div>
@@ -54,7 +56,7 @@ import { supabase } from "../js/supabaseclientes.js";
 const { data: { user } } = await supabase.auth.getUser();
 if (!user) location.href = "./login.html";
 
-/* PERFIL (con avatar_url) */
+/* PERFIL */
 const { data: profile } = await supabase
   .from("profiles")
   .select("role, avatar_url")
@@ -124,7 +126,7 @@ async function cargarHijos() {
       <p><strong>Curso:</strong> ${h.curso || "—"}</p>
       <p><strong>Nacimiento:</strong> ${h.fecha_nacimiento || "—"}</p>
 
-      <!-- Botón sin clase, igual que admin -->
+      <!-- 🔥 BOTÓN EDITAR IGUAL QUE ADMIN -->
       <button onclick="location.href='./mis-hijos-form.html?id=${h.id}'">Editar</button>
     </div>
   `).join("");
