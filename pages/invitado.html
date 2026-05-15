@@ -39,7 +39,6 @@
 
 <div class="container">
 
-  <!-- Navegación universal -->
   <div class="nav-container">
     <button id="btnVolver" class="nav-btn">Volver</button>
     <button id="btnInicio" class="nav-btn">Inicio</button>
@@ -56,9 +55,6 @@
 </div>
 
 <script>
-/* ============================================================
-   1. MENÚ PERFIL
-============================================================ */
 document.getElementById("profileToggle").onclick = () => {
   const d = document.getElementById("profileDropdown");
   d.style.display = d.style.display === "block" ? "none" : "block";
@@ -70,9 +66,6 @@ document.addEventListener("click", (e) => {
   }
 });
 
-/* ============================================================
-   2. NAVEGACIÓN UNIVERSAL
-============================================================ */
 document.getElementById("btnVolver").onclick = () => {
   location.href = "./login.html";
 };
@@ -81,25 +74,16 @@ document.getElementById("btnInicio").onclick = () => {
   location.href = "./login.html";
 };
 
-/* ============================================================
-   3. BLOQUEAR RETROCESO
-============================================================ */
 history.pushState(null, null, location.href);
 window.onpopstate = function () {
   history.go(1);
 };
 
-/* ============================================================
-   4. IR A LOGIN
-============================================================ */
 document.getElementById("btnLogin").onclick = () => {
   localStorage.removeItem("invitado");
   location.href = "./login.html";
 };
 
-/* ============================================================
-   5. ENTRAR COMO INVITADO → AHORA APUNTA A actividades-familiar.html
-============================================================ */
 document.getElementById("btnActividades").onclick = () => {
   localStorage.setItem("invitado", "true");
   location.href = "./actividades-familiar.html";
